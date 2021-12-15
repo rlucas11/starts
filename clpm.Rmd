@@ -1,7 +1,7 @@
 ---
 title: "CLPM Versus RI-CLPM"
 author: "Richard Lucas"
-date: "12/14/2021"
+date: "12/15/2021"
 output: html_document
 ---
 
@@ -23,7 +23,24 @@ set.seed=1214
 
 ```
 
+## tl;dr
+
+* The RI-CLPM supposedly separates between-person effects from within-person effects. The benefit of doing so is that the RI-CLPM controls for stable-trait-level confounds that are not controlled in the CLPM (because a variable measured at any single wave does not perfectly capture this stable trait variance).
+* The interpretation of cross-lagged effects in the RI-CLPM is: The effect of an individual's deviation from their usual level of the predictor (i.e., their mean) on future deviations from their usual level of the outcome.
+* Critics of the RI-CLPM argue that sometimes we don't want to focus on this within-person effect, in which case the CLPM would be preferable. Cross-lagged paths in the CLPM are thought to reflect whether one's position relative to others on the predictor affects change in the outcome.
+* But I think that the standard interpretation of the cross-lagged part of the RI-CLPM is incorrect. Not all between-person variance is included in the Stable Trait component. The RI-CLPM only separates *completely stable trait variance* from everything else. This means that a more precise interpretation of the cross-lagged paths should be something more like "the effect of an individual's deviation from the stable trait for the predictor on their later deviation from their stable trait for the outcome." I think (and that's the point of this document) that this is conceptually (and empirically) very different than the interpretation described above.
+* If the cross-lagged, autoregressive part of the RI-CLPM model does not reflect purely within-person processes, then it negates the primary objection to using the RI-CLPM. 
+* At the very least, we need some clarification of what "within-person" means in this context. 
+
+## The Cross-Lagged Panel Model
+
+The cross-lagged panel model (CLPM) is a widely used technique for examining causal processes in longitudinal data. Hamaker et al. (2015) pointed out that the CLPM does not adequately account for stable-trait-level confounds, and they suggested the random-intercept cross-lagged panel model (RI-CLMP) as an alternative. They showed that failure to account for the random intercept can lead to incorrect conclusions about cross-lagged paths (and those effects can positively or negatively biased if the random intercept is not included). Hamaker et al. described the RI-CLPM as a multilevel model that separates between-person effects from within-person effects. 
+
+Critics (e.g., Orth et al., 2021; Lüdtke and Robitsch, 2021) have argued that sometimes, we are actually interested in the between-person effects that a classic CLPM tests, and that the choice of model depends on one's theories about the process. Even if their arguments about the interpretation of the RI-CLPM were correct, I would disagree (we should also test plausible alternatives and then justify why our preferred model should actually be preferred). However, I also am concerned that their interpretation of the difference between the CLPM and RI-CLPM is not quite accurate. 
+
 I think that two sources of confusion for me are (a) the ambiguous nature of autoregressive variance in terms of whether it clearly reflects within- or between-person effects, and (b) how the interpretation of the autoregressive (and cross-lagged) part changes depending on whether we include a random intercept. 
+
+## An Example
 
 For instance, take the following example, where data are generated from a true autoregressive model with cross-lagged paths. Specifically, this generates 10 waves of X and Y data, with no random intercept, starting variance of 1 for X and Y, stabilities of .5 for X and Y, true cross-lagged paths of .25, and a Wave 1 correlation between X and Y of .5. For comparison with the substantive discussion by Orth et al., let's assume that X is Self-Esteem and Y is Life Satisfaction (Orth et al. use depression, but I will use life satisfaction just so all associations are positive). If you're interested in the function to generate the data, it's [here](https://github.com/rlucas11/starts/blob/main/gen_starts.R)
 
@@ -55,7 +72,7 @@ lavaanPlot(model = fit_clpm, graph_options=list(rankdir = "LR", splines=FALSE), 
 
 According to Orth (or Lüdtke), significant cross-lagged paths from X (self-esteem) to Y (life satisfaction) in this model can be interpreted to mean that "When individuals have [high] self-esteem (relative to others), they will experience a subsequent rank-order increase in [life satisfaction] compared to individuals with [low] self-esteem". They argue that this is precisely what they want to estimate in many situations.
 
-They also argue that when you include random intercepts, the interpretation of the cross-lagged paths change. Although they correctly state that "in the RI-CLPM, a cross-lagged effect indicates whether a within-person deviation from the trait level of one construct has a prospective effect on change in the within-person deviation from the trait level of the other construct," they also restate this as: "When individuals have [higher] self-esteem than usual, they will experience a subsequent increase in [life satisfaction]." I think the problem is that what is captured by the "stable trait" in the RI-CLPM model is potentially (and frequently) not just subtly different than a person's "average level" or "typical level" but can often be *very* different, both conceptually and empirically. This is because the stable trait only consists of variance that is perfectly stable across all waves. So I think that what the cross-lagged paths really reflect in a RI-CLPM is that "When individuals have higher self-esteem *than what would be predicted from their levels on the stable trait*, they will experience a subsequent increase in life satisfaction." 
+They also argue that when you include random intercepts, the interpretation of the cross-lagged paths change. Although they correctly state that "in the RI-CLPM, a cross-lagged effect indicates whether a within-person deviation from the trait level of one construct has a prospective effect on change in the within-person deviation from the trait level of the other construct," they also restate this as: "When individuals have [higher] self-esteem than usual, they will experience a subsequent increase in [life satisfaction]." I think the problem is that what is captured by the "stable trait" in the RI-CLPM model is potentially (and frequently) different than a person's "average level" or "usual level." I think that these two things can be *very* different, both conceptually and empirically. This is because the stable trait only consists of variance that is perfectly stable across all waves. So I think that what the cross-lagged paths really reflect in a RI-CLPM is that "When individuals have higher self-esteem *than what would be predicted from their levels on the stable trait*, they will experience a subsequent increase in life satisfaction." 
 
 For instance, imagine that we take the same data from above, but now we add some shared method variance, and this shared method variance is the only thing that is perfectly stable across waves for either life satisfaction or self-esteem. Specifically, we can generate data for a method factor for self-esteem and a method factor for life satisfaction, and we can assume that they are pretty strongly correlated (if they reflect shared method variance that affects measures similarly). We can then just add the generated method variance scores to the original data. 
 
@@ -106,7 +123,7 @@ I do get that the RI-CLPM has now removed all of the confounding effects of stab
 
 ## What's A Person's Usual Level?
 
-The problems with this standard interpretation depend on how much stable trait variance there is. I think that it is possible that what one is "usually like" can be very different than what is pulled out in the stable trait. For instance, we can use the following to create data with quite a bit of stability, even though it has a purely autoregressive (plus cross-lags) structure. In this case, let's assume that autoregressive stability is .90, which means that after 10 waves the stability is still `r round(.9^10, digits=2)` (actually slightly higher because of the cross-lagged effects). With fewer waves, this would look even more traity, even though there is no stable trait variance at all. 
+Again, the issue is that a person's "Usual Level" is not the same thing as their "Stable Trait." These are conceptually two different things---sometimes two *very* different things. The differences depends on how much stable trait variance there is and how stable the autoregressive part is. For instance, we can use the following code to create data with quite a bit of stability, even though it has a purely autoregressive (plus cross-lags) structure. In this case, let's assume that autoregressive stability is .90, which means that after 10 waves the stability is still `r round(.9^10, digits=2)` (actually slightly higher because of the cross-lagged effects). With fewer waves, this would look even more "traity," even though there is no stable trait variance at all. People certainly have meaningful averages, even in these data.
 
 You can then generate and add a very small trait factor (in this case, accounting for one-tenth the amount of variance as in the autoregressive components). 
 
@@ -164,7 +181,7 @@ fit_ri2 <- lavaan(ri_clpm10_c, data = combo_data2)
 
 ```
 
-The RI-CLPM again recovers the correct parameters (I won't show this, but you can check). However, what people are "typically like" (i.e., their means across all waves) are only slightly related to the actual stable trait variable (which we have access to because we generated the scores separately). The following table shows the correlations between the means for the combined Trait/AR data and the means for the two components. 
+The RI-CLPM again recovers the correct parameters (I won't show this, but you can check). However, what people are "typically like" (i.e., their means across all waves) is only slightly related to the actual stable trait variable (which we have access to because we generated the scores separately). The following table shows the correlations between the means for the combined Trait/AR data and the means for the two components. People's average scores are only weakly correlated with the stable trait. 
 
 ```{r less_trait_cors, echo=FALSE}
 
