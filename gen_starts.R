@@ -13,20 +13,32 @@ gen_starts <- function(n=500,      # N to generate
                        y=1,        # AR variance for Y
                        stab_x=.5,  # Stability of X
                        stab_y=.5,  # Stability of Y
-                       yx=.4,      # Cross lag (Y on X)
-                       xy=.2,      # Cross lag (X on Y)
+                       yx=.4,      # Cross lag (Y regressed on X)
+                       xy=.2,      # Cross lag (X regressed on Y)
                        cor_xy=.5,  # Correlation between X and Y (as correlation)
                        cor_xyr=.2, # Correlation between X and Y residuals  (as correlation)
                        xr=0,       # Measurement error for X
                        yr=0        # Measurement error for Y
                        ) {
-    ## Stationarity Constraints
-    wxr <- 1 - ((x*stab_x^2 + y*xy^2)/(1-cor_xy^2)) #x residual
-    wyr <- 1 - ((y*stab_y^2 + x*yx^2)/(1-cor_xy^2)) #y residual
+
+    ## ## Stationarity Constraints
+    ## Cxx <- matrix(c(x, cor_xy, cor_xy, y), nrow = 2)
+    ## bx <- matrix(c(stab_x,xy), nrow = 2)
+    ## by <- matrix(c(yx, stab_y), nrow = 2)
+    ## wxr <- x - t(bx) %*% Cxx %*% bx
+    ## wyr <- y - t(by) %*% Cxx %*% by
+    ## cor_xyr <- cor_xy  * (1 - stab_x*stab_y - xy*yx) - stab_x*xy*wxr - stab_y*yx*wyr
+
+    ## Alternative Stationarity Constraints
+    wxr <- (1-stab_x^2)*x - 2*stab_x*xy*cor_xy - xy^2*y
+    wyr <- (1-stab_y^2)*y - 2*stab_y*yx*cor_xy - yx^2*x
+    cor_xyr <- (1-stab_x*stab_y-xy*yx)*cor_xy - stab_x*yx*x - stab_y*xy*y
+
     ## Transform correlations into covariances for matrices
     cor_i <- cor_i * (sqrt(ri_x) * sqrt(ri_y))
-    cor_xyr <- cor_xyr * (sqrt(wxr) * sqrt(wyr))
+    #cor_xyr <- cor_xyr * (sqrt(wxr) * sqrt(wyr))
     ##
+
     ## Initialize Matrices
     lambda <- matrix(0, nrow = 2 * nwaves, ncol = 2 + 2 * nwaves,
                      dimnames = list(c(paste0("x",1:nwaves),
@@ -133,3 +145,6 @@ gen_starts <- function(n=500,      # N to generate
     ## Make it a dataframe
     data <- as.data.frame(obs)
 }
+
+
+
