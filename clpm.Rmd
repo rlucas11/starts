@@ -1,0 +1,183 @@
+---
+title: "CLPM Versus RI-CLPM"
+author: "Richard Lucas"
+date: "12/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(lavaan)
+library(lavaanPlot)
+library(tidyverse)
+library(knitr)
+
+source("gen_starts.R") ## Generate data
+source("clpm10.R") ## Lavaan model for 10-wave clpm
+source("ri-clpm10.R") ## Lavaan model for 10-wave ri-clpm
+source("clpm10_c.R") ## Lavaan model for 10-wave clpm with constraints
+source("ri_clpm10_c.R") ## Lavaan model for 10-wave ri-clpm with constraints
+
+set.seed=1214
+
+```
+
+I think that two sources of confusion for me are (a) the ambiguous nature of autoregressive variance in terms of whether it clearly reflects within- or between-person effects, and (b) how the interpretation of the autoregressive (and cross-lagged) part changes depending on whether we include a random intercept. 
+
+For instance, take the following example, where data are generated from a true autoregressive model with cross-lagged paths. Specifically, this generates 10 waves of X and Y data, with no random intercept, starting variance of 1 for X and Y, stabilities of .5 for X and Y, true cross-lagged paths of .25, and a Wave 1 correlation between X and Y of .5. For comparison with the substantive discussion by Orth et al., let's assume that X is Self-Esteem and Y is Life Satisfaction (Orth et al. use depression, but I will use life satisfaction just so all associations are positive). If you're interested in the function to generate the data, it's [here](https://github.com/rlucas11/starts/blob/main/gen_starts.R)
+
+
+```{r true_clpm}
+clpm_data <- gen_starts(n = 10000, 
+                        nwaves = 10,
+                        x = 1, # Variance in Autoregressive Component for X
+                        y = 1, # Variance in Autoregressive Component for Y
+                        ri_x = 0, # Random Intercept Variance for X
+                        ri_y = 0, # Random Intercept Variance for Y
+                        xr = 0, # Measurement Error for X
+                        yr = 0, # Measurement Error for Y
+                        stab_x = .50, # Stability of Autoregressive Component for X
+                        stab_y = .50, # Stability of Autoregressive Component for Y
+                        yx = .25, # Crosslagged path, Y regressed on X
+                        xy = .25, # Crosslagged path, X regressed on Y
+                        cor_xy = .5, # Correlation between Autoregressive Component for X and Y
+                        )
+
+## Fit CLPM Model
+fit_clpm <- lavaan(clpm10_c, data = clpm_data)
+#summary(fit_clpm)
+```
+
+```{r plot_clpm, fig.height = 2, fig.width=8}
+lavaanPlot(model = fit_clpm, graph_options=list(rankdir = "LR", splines=FALSE), coefs=FALSE)
+```
+
+According to Orth (or Lüdtke), significant cross-lagged paths from X (self-esteem) to Y (life satisfaction) in this model can be interpreted to mean that "When individuals have [high] self-esteem (relative to others), they will experience a subsequent rank-order increase in [life satisfaction] compared to individuals with [low] self-esteem". They argue that this is precisely what they want to estimate in many situations.
+
+They also argue that when you include random intercepts, the interpretation of the cross-lagged paths change. Although they correctly state that "in the RI-CLPM, a cross-lagged effect indicates whether a within-person deviation from the trait level of one construct has a prospective effect on change in the within-person deviation from the trait level of the other construct," they also restate this as: "When individuals have [higher] self-esteem than usual, they will experience a subsequent increase in [life satisfaction]." I think the problem is that what is captured by the "stable trait" in the RI-CLPM model is potentially (and frequently) not just subtly different than a person's "average level" or "typical level" but can often be *very* different, both conceptually and empirically. This is because the stable trait only consists of variance that is perfectly stable across all waves. So I think that what the cross-lagged paths really reflect in a RI-CLPM is that "When individuals have higher self-esteem *than what would be predicted from their levels on the stable trait*, they will experience a subsequent increase in life satisfaction." 
+
+For instance, imagine that we take the same data from above, but now we add some shared method variance, and this shared method variance is the only thing that is perfectly stable across waves for either life satisfaction or self-esteem. Specifically, we can generate data for a method factor for self-esteem and a method factor for life satisfaction, and we can assume that they are pretty strongly correlated (if they reflect shared method variance that affects measures similarly). We can then just add the generated method variance scores to the original data. 
+
+```{r add_ri}
+## Generate latent X and Y intercepts (perfectly stable method variance, correlated .80 for X and Y)
+st_data <- rmnorm(10000, varcov = matrix(c(.50, .40, .40, .50), nrow=2))
+
+## Combine method variance with original scores
+combo_data <- cbind(clpm_data, st_data)
+
+## Add method variance to original scores
+temp_x <- data.frame(sapply(seq(1,10), function(x) rowSums(combo_data[,c(x,21)])))
+temp_y <- data.frame(sapply(seq(11,20), function(x) rowSums(combo_data[,c(x,22)])))
+names(temp_y) <- paste0("y", 1:10)
+
+## Combine dataframes
+combo_data <- cbind(temp_x, temp_y)
+names(combo_data) <- tolower(names(combo_data))
+
+## Find person means for original data and combined data
+clpm_means <- data.frame(x=rowMeans(clpm_data[,1:10]), y=rowMeans(clpm_data[,11:20]))
+combo_means <- data.frame(xc=rowMeans(combo_data[,1:10]), yc=rowMeans(combo_data[,11:20]))
+all_means <- cbind(clpm_means, combo_means, st_data)
+names(all_means) <- paste(rep(c("clpm", "combo", "ri"), each=2), c("x","y"), sep = "_")
+```
+
+Now if we fit the RI-CLPM to the combined data, you get exactly what you'd expect. The estimates for the random intercept simply reflect the method variance we've added: The variance of each estimated random intercept is .50 and the covariance is .40. They don't capture any of the between-person differences in the original data (which are substantial) because these individual differences are not *perfectly* stable across waves. More importantly, the estimates for the original autoregressive, cross-lagged part of the model are almost identical to what you get when you run the CLPM on the original data. The variances, stabilities, and cross-lagged paths are the same. 
+
+```{r models, echo=FALSE}
+
+## Models with combo data
+fit_ri <- lavaan(ri_clpm10_c, data = combo_data)
+#summary(fit_ri)
+
+```
+
+
+```{r clpm_table, echo=FALSE, message=FALSE, warning=FALSE, results='as.is'}
+kable(parameterEstimates(fit_ri)[c(41,50,59,68,77,78,79,80,99,100),], caption="Relevant Estimates from RI-CLPM", digits=2)
+kable(parameterEstimates(fit_clpm)[c(1,2,3,4,37,38,57),], caption="Relevant Estimates from CLPM", digits = 2)
+
+```
+
+
+I think my point is that adding this stable trait variance (and modeling it) doesn't suddenly make the cross-lagged part any more "within-persons" than it was before. Orth and Lüdtke clearly think that a regular cross-lagged panel model is not a within-persons model, but in my examples above, the cross-lagged part gets at the same hypothetical processes in both cases. This also means that the interpretation of those cross-lagged paths *would not* be that "when individuals have higher self-esteem than usual, they will experience a subsequent increase in life satisfaction." The difference is much subtler; it would be something like "when individuals report a higher self-esteem than would be predicted from stable method variance alone, then they will experience a subsequent increase in life satisfaction." Contrary to what Orth or Lüdtke argue, this interpretation still links *individual differences* at Time 1 (now isolated from stable method variance) to change in life satisfaction at Time 2. 
+
+I do get that the RI-CLPM has now removed all of the confounding effects of stable trait associations, but I don't think that this results in a model where between and within-person effects have cleanly been separated. 
+
+## What's A Person's Usual Level?
+
+The problems with this standard interpretation depend on how much stable trait variance there is. I think that it is possible that what one is "usually like" can be very different than what is pulled out in the stable trait. For instance, we can use the following to create data with quite a bit of stability, even though it has a purely autoregressive (plus cross-lags) structure. In this case, let's assume that autoregressive stability is .90, which means that after 10 waves the stability is still `r round(.9^10, digits=2)` (actually slightly higher because of the cross-lagged effects). With fewer waves, this would look even more traity, even though there is no stable trait variance at all. 
+
+You can then generate and add a very small trait factor (in this case, accounting for one-tenth the amount of variance as in the autoregressive components). 
+
+
+```{r less_trait}
+## Generate clpm data with high stability
+set.seed(1214)
+clpm_data2 <- gen_starts(n = 10000, 
+                        nwaves = 10, 
+                        ri_x = 0, # Random Intercept Variance for X
+                        ri_y = 0, # Random Intercept Variane for Y
+                        xr = 0, # Measurement Error for X
+                        yr = 0, # Measurement Error for Y
+                        stab_x = .90, # Stability of X
+                        stab_y = .90, # Stability of Y
+                        yx = .05, # Cross-lag, Y regressed on X
+                        xy = .05, # Cross-lag, X regressed on Y
+                        cor_xy = .5, # Correlation between X and Y AR
+                        )
+
+
+## Generate latent X and Y intercepts (perfectly stable method variance, correlated .80 for X and Y)
+st_data2 <- rmnorm(10000, varcov = matrix(c(.10, .08, .08, .10), nrow=2))
+
+## Combine method variance with original scores
+combo_data2 <- cbind(clpm_data2, st_data2)
+
+## Add method variance to original scores
+temp_x <- data.frame(sapply(seq(1,10), function(x) rowSums(combo_data2[,c(x,21)])))
+temp_y <- data.frame(sapply(seq(11,20), function(x) rowSums(combo_data2[,c(x,22)])))
+names(temp_y) <- paste0("y", 1:10)
+
+## Combine dataframes
+combo_data2 <- cbind(temp_x, temp_y)
+names(combo_data2) <- tolower(names(combo_data2))
+
+## Find person means for original data and combined data
+clpm_means2 <- data.frame(x=rowMeans(clpm_data2[,1:10]), y=rowMeans(clpm_data2[,11:20]))
+combo_means2 <- data.frame(xc=rowMeans(combo_data2[,1:10]), yc=rowMeans(combo_data2[,11:20]))
+all_means2 <- cbind(clpm_means2, combo_means2, st_data2)
+names(all_means2) <- paste(rep(c("clpm", "combo", "ri"), each=2), c("x","y"), sep = "_")
+
+```
+
+```{r less_trait_models}
+
+## Fit clpm data
+fit_clpm2 <- lavaan(clpm10_c, data = clpm_data2)
+#summary(fit_clpm2)
+
+## Models with combo data
+fit_ri2 <- lavaan(ri_clpm10_c, data = combo_data2)
+#summary(fit_ri2)
+
+
+```
+
+The RI-CLPM again recovers the correct parameters (I won't show this, but you can check). However, what people are "typically like" (i.e., their means across all waves) are only slightly related to the actual stable trait variable (which we have access to because we generated the scores separately). The following table shows the correlations between the means for the combined Trait/AR data and the means for the two components. 
+
+```{r less_trait_cors, echo=FALSE}
+
+cor_tab <- cor(all_means2)[c(1,2,5,6), c(3,4)]
+colnames(cor_tab) <- c("Combined Scores for X", "Combined Scores for Y")
+rownames(cor_tab) <- c("CLPM Means for X", "CLPM Means for Y", "Random Intercept Means for X", "Random Intercept Means for Y")
+kable(cor_tab, digits = 2, caption="Correlation Between Between-Person Variance in Different Components")
+
+```
+
+So in this case, I think it would be wrong to interpret the cross-lagged paths in this model as reflecting the associations between deviations from one's typical level, one's mean level, or anything else like that.
+
+The reason I think that this is important is that Orth and Lüdtke's primary argument against using the RI-CLPM is that we often don't want to know whether "deviations from a person's mean at Time 1 predict their deviations from mean in a different variable at Time 2." But if that interpretation is wrong, then that takes away their primary reason for avoiding modeling random intercepts. They might be able to reframe in a way that allows them to argue that they aren't interested in a what's actually left after pulling out the random intercept, but I think it would be a different argument than they currently make, and I think it would necessarily be much more convoluted. 
+
+Anyway, given that nobody else seems to have this problem with the standard interpretations, how am I thinking about this incorrectly?
+
