@@ -197,8 +197,8 @@ pre code {
 fit_clpm &lt;- lavaan(clpm10_c, data = clpm_data)
 #summary(fit_clpm)</code></pre>
 <pre class="r"><code>lavaanPlot(model = fit_clpm, graph_options=list(rankdir = &quot;LR&quot;, splines=FALSE), coefs=FALSE)</code></pre>
-<div id="htmlwidget-7f5ab925d8b82a1a82e3" style="width:768px;height:192px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-7f5ab925d8b82a1a82e3">{"x":{"diagram":" digraph plot { \n graph [ rankdir = LR, splines = FALSE ] \n node [ shape = box ] \n node [shape = box] \n x1; y1; x2; y2; x3; y3; x4; y4; x5; y5; x6; y6; x7; y7; x8; y8; x9; y9; x10; y10 \n node [shape = oval] \n  \n \n edge [ color = black ] \n x1->x2 y1->y2 y1->x2 x1->y2 x2->x3 y2->y3 y2->x3 x2->y3 x3->x4 y3->y4 y3->x4 x3->y4 x4->x5 y4->y5 y4->x5 x4->y5 x5->x6 y5->y6 y5->x6 x5->y6 x6->x7 y6->y7 y6->x7 x6->y7 x7->x8 y7->y8 y7->x8 x7->y8 x8->x9 y8->y9 y8->x9 x8->y9 x9->x10 y9->y10 y9->x10 x9->y10  \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-f210657bbe71c9c5e251" style="width:768px;height:192px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f210657bbe71c9c5e251">{"x":{"diagram":" digraph plot { \n graph [ rankdir = LR, splines = FALSE ] \n node [ shape = box ] \n node [shape = box] \n x1; y1; x2; y2; x3; y3; x4; y4; x5; y5; x6; y6; x7; y7; x8; y8; x9; y9; x10; y10 \n node [shape = oval] \n  \n \n edge [ color = black ] \n x1->x2 y1->y2 y1->x2 x1->y2 x2->x3 y2->y3 y2->x3 x2->y3 x3->x4 y3->y4 y3->x4 x3->y4 x4->x5 y4->y5 y4->x5 x4->y5 x5->x6 y5->y6 y5->x6 x5->y6 x6->x7 y6->y7 y6->x7 x6->y7 x7->x8 y7->y8 y7->x8 x7->y8 x8->x9 y8->y9 y8->x9 x8->y9 x9->x10 y9->y10 y9->x10 x9->y10  \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 <p>According to Orth (or Lüdtke), significant cross-lagged paths from X (self-esteem) to Y (life satisfaction) in this model can be interpreted to mean that “When individuals have [high] self-esteem (relative to others), they will experience a subsequent rank-order increase in [life satisfaction] compared to individuals with [low] self-esteem”. They argue that this is precisely what they want to estimate in many situations.</p>
 <p>They also argue that when you include random intercepts, the interpretation of the cross-lagged paths change. Although they correctly state that “in the RI-CLPM, a cross-lagged effect indicates whether a within-person deviation from the trait level of one construct has a prospective effect on change in the within-person deviation from the trait level of the other construct,” they also restate this as: “When individuals have [higher] self-esteem than usual, they will experience a subsequent increase in [life satisfaction].” I think the problem is that what is captured by the “stable trait” in the RI-CLPM model is potentially (and frequently) not just subtly different than a person’s “average level” or “typical level” but can often be <em>very</em> different, both conceptually and empirically. This is because the stable trait only consists of variance that is perfectly stable across all waves. So I think that what the cross-lagged paths really reflect in a RI-CLPM is that “When individuals have higher self-esteem <em>than what would be predicted from their levels on the stable trait</em>, they will experience a subsequent increase in life satisfaction.”</p>
 <p>For instance, imagine that we take the same data from above, but now we add some shared method variance, and this shared method variance is the only thing that is perfectly stable across waves for either life satisfaction or self-esteem. Specifically, we can generate data for a method factor for self-esteem and a method factor for life satisfaction, and we can assume that they are pretty strongly correlated (if they reflect shared method variance that affects measures similarly). We can then just add the generated method variance scores to the original data.</p>
@@ -223,7 +223,6 @@ combo_means &lt;- data.frame(xc=rowMeans(combo_data[,1:10]), yc=rowMeans(combo_d
 all_means &lt;- cbind(clpm_means, combo_means, st_data)
 names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri&quot;), each=2), c(&quot;x&quot;,&quot;y&quot;), sep = &quot;_&quot;)</code></pre>
 <p>Now if we fit the RI-CLPM to the combined data, you get exactly what you’d expect. The estimates for the random intercept simply reflect the method variance we’ve added: The variance of each estimated random intercept is .50 and the covariance is .40. They don’t capture any of the between-person differences in the original data (which are substantial) because these individual differences are not <em>perfectly</em> stable across waves. More importantly, the estimates for the original autoregressive, cross-lagged part of the model are almost identical to what you get when you run the CLPM on the original data. The variances, stabilities, and cross-lagged paths are the same.</p>
-<p>I think my point is that adding this stable trait variance (and modeling it) doesn’t suddenly make the cross-lagged part any more “within-persons” than it was before. This also means that the interpretation of those cross-lagged paths <em>would not</em> be “when individuals have higher self-esteem than usual, they will experience a subsequent increase in life satisfaction.” The difference is much subtler; it would be something like “when individuals report a higher self-esteem than would be predicted from method variance alone, then they will experience a subsequent increase in life satisfaction.” Contrary to what Orth or Lüdtke argue, this interpretation still links <em>individual differences</em> at Time 1 (now isolated from stable method variance) to change in life satisfaction at Time 2.</p>
 <table>
 <caption>Relevant Estimates from RI-CLPM</caption>
 <thead>
@@ -250,7 +249,7 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">a</td>
 <td align="right">0.50</td>
 <td align="right">0.00</td>
-<td align="right">123.61</td>
+<td align="right">124.14</td>
 <td align="right">0</td>
 <td align="right">0.49</td>
 <td align="right">0.51</td>
@@ -261,11 +260,11 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">~</td>
 <td align="left">wy1</td>
 <td align="left">b</td>
-<td align="right">0.51</td>
-<td align="right">0.00</td>
-<td align="right">125.85</td>
-<td align="right">0</td>
 <td align="right">0.50</td>
+<td align="right">0.00</td>
+<td align="right">124.39</td>
+<td align="right">0</td>
+<td align="right">0.49</td>
 <td align="right">0.51</td>
 </tr>
 <tr class="odd">
@@ -276,7 +275,7 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">c</td>
 <td align="right">0.25</td>
 <td align="right">0.00</td>
-<td align="right">70.23</td>
+<td align="right">70.65</td>
 <td align="right">0</td>
 <td align="right">0.24</td>
 <td align="right">0.26</td>
@@ -289,9 +288,9 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">d</td>
 <td align="right">0.25</td>
 <td align="right">0.00</td>
-<td align="right">70.46</td>
+<td align="right">71.55</td>
 <td align="right">0</td>
-<td align="right">0.24</td>
+<td align="right">0.25</td>
 <td align="right">0.26</td>
 </tr>
 <tr class="odd">
@@ -300,12 +299,12 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">~~</td>
 <td align="left">ri_x</td>
 <td align="left"></td>
-<td align="right">0.50</td>
-<td align="right">0.01</td>
-<td align="right">33.41</td>
-<td align="right">0</td>
 <td align="right">0.47</td>
-<td align="right">0.53</td>
+<td align="right">0.01</td>
+<td align="right">32.27</td>
+<td align="right">0</td>
+<td align="right">0.45</td>
+<td align="right">0.50</td>
 </tr>
 <tr class="even">
 <td align="left">78</td>
@@ -313,12 +312,12 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">~~</td>
 <td align="left">ri_y</td>
 <td align="left"></td>
-<td align="right">0.48</td>
+<td align="right">0.47</td>
 <td align="right">0.01</td>
-<td align="right">32.36</td>
+<td align="right">32.18</td>
 <td align="right">0</td>
-<td align="right">0.45</td>
-<td align="right">0.51</td>
+<td align="right">0.44</td>
+<td align="right">0.50</td>
 </tr>
 <tr class="odd">
 <td align="left">79</td>
@@ -328,10 +327,10 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left"></td>
 <td align="right">1.00</td>
 <td align="right">0.02</td>
-<td align="right">52.36</td>
+<td align="right">52.26</td>
 <td align="right">0</td>
-<td align="right">0.97</td>
-<td align="right">1.04</td>
+<td align="right">0.96</td>
+<td align="right">1.03</td>
 </tr>
 <tr class="even">
 <td align="left">80</td>
@@ -339,12 +338,12 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">~~</td>
 <td align="left">wy1</td>
 <td align="left"></td>
-<td align="right">1.03</td>
+<td align="right">1.01</td>
 <td align="right">0.02</td>
-<td align="right">52.58</td>
+<td align="right">52.56</td>
 <td align="right">0</td>
-<td align="right">0.99</td>
-<td align="right">1.06</td>
+<td align="right">0.97</td>
+<td align="right">1.05</td>
 </tr>
 <tr class="odd">
 <td align="left">99</td>
@@ -352,12 +351,12 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">~~</td>
 <td align="left">ri_y</td>
 <td align="left"></td>
-<td align="right">0.39</td>
-<td align="right">0.01</td>
-<td align="right">28.82</td>
-<td align="right">0</td>
 <td align="right">0.37</td>
-<td align="right">0.42</td>
+<td align="right">0.01</td>
+<td align="right">27.72</td>
+<td align="right">0</td>
+<td align="right">0.35</td>
+<td align="right">0.40</td>
 </tr>
 <tr class="even">
 <td align="left">100</td>
@@ -367,7 +366,7 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left"></td>
 <td align="right">0.51</td>
 <td align="right">0.02</td>
-<td align="right">32.00</td>
+<td align="right">32.30</td>
 <td align="right">0</td>
 <td align="right">0.48</td>
 <td align="right">0.55</td>
@@ -400,10 +399,10 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">a</td>
 <td align="right">0.50</td>
 <td align="right">0.00</td>
-<td align="right">172.07</td>
+<td align="right">172.44</td>
 <td align="right">0</td>
 <td align="right">0.49</td>
-<td align="right">0.50</td>
+<td align="right">0.51</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
@@ -413,10 +412,10 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">b</td>
 <td align="right">0.50</td>
 <td align="right">0.00</td>
-<td align="right">173.31</td>
+<td align="right">172.47</td>
 <td align="right">0</td>
 <td align="right">0.49</td>
-<td align="right">0.51</td>
+<td align="right">0.50</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
@@ -426,7 +425,7 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">c</td>
 <td align="right">0.25</td>
 <td align="right">0.00</td>
-<td align="right">86.54</td>
+<td align="right">86.74</td>
 <td align="right">0</td>
 <td align="right">0.25</td>
 <td align="right">0.26</td>
@@ -439,7 +438,7 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">d</td>
 <td align="right">0.25</td>
 <td align="right">0.00</td>
-<td align="right">86.30</td>
+<td align="right">85.82</td>
 <td align="right">0</td>
 <td align="right">0.24</td>
 <td align="right">0.25</td>
@@ -450,12 +449,12 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">~~</td>
 <td align="left">x1</td>
 <td align="left"></td>
-<td align="right">1.00</td>
+<td align="right">0.98</td>
 <td align="right">0.01</td>
 <td align="right">70.71</td>
 <td align="right">0</td>
-<td align="right">0.98</td>
-<td align="right">1.03</td>
+<td align="right">0.95</td>
+<td align="right">1.01</td>
 </tr>
 <tr class="even">
 <td align="left">38</td>
@@ -463,12 +462,12 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">~~</td>
 <td align="left">y1</td>
 <td align="left"></td>
-<td align="right">1.01</td>
+<td align="right">1.00</td>
 <td align="right">0.01</td>
 <td align="right">70.71</td>
 <td align="right">0</td>
-<td align="right">0.98</td>
-<td align="right">1.04</td>
+<td align="right">0.97</td>
+<td align="right">1.03</td>
 </tr>
 <tr class="odd">
 <td align="left">57</td>
@@ -476,16 +475,21 @@ names(all_means) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri
 <td align="left">~~</td>
 <td align="left">y1</td>
 <td align="left"></td>
-<td align="right">0.51</td>
+<td align="right">0.50</td>
 <td align="right">0.01</td>
-<td align="right">45.26</td>
+<td align="right">44.91</td>
 <td align="right">0</td>
-<td align="right">0.49</td>
-<td align="right">0.53</td>
+<td align="right">0.48</td>
+<td align="right">0.52</td>
 </tr>
 </tbody>
 </table>
-<p>The problems with this standard interpretation depend on how much stable trait variance there is. I think that it is possible that what one is “usually like” can be very different than what is pulled out in the stable trait. For instance, we can use the following to create data with quite a bit of stability, even though it has a purely autoregressive (plus cross-lags) structure. You can then generate and add a very small trait factor (in this case, accounting for one-tenth the amount of variance as in the autoregressive components).</p>
+<p>I think my point is that adding this stable trait variance (and modeling it) doesn’t suddenly make the cross-lagged part any more “within-persons” than it was before. Orth and Lüdtke clearly think that a regular cross-lagged panel model is not a within-persons model, but in my examples above, the cross-lagged part gets at the same hypothetical processes in both cases. This also means that the interpretation of those cross-lagged paths <em>would not</em> be that “when individuals have higher self-esteem than usual, they will experience a subsequent increase in life satisfaction.” The difference is much subtler; it would be something like “when individuals report a higher self-esteem than would be predicted from stable method variance alone, then they will experience a subsequent increase in life satisfaction.” Contrary to what Orth or Lüdtke argue, this interpretation still links <em>individual differences</em> at Time 1 (now isolated from stable method variance) to change in life satisfaction at Time 2.</p>
+<p>I do get that the RI-CLPM has now removed all of the confounding effects of stable trait associations, but I don’t think that this results in a model where between and within-person effects have cleanly been separated.</p>
+<div id="whats-a-persons-usual-level" class="section level2">
+<h2>What’s A Person’s Usual Level?</h2>
+<p>The problems with this standard interpretation depend on how much stable trait variance there is. I think that it is possible that what one is “usually like” can be very different than what is pulled out in the stable trait. For instance, we can use the following to create data with quite a bit of stability, even though it has a purely autoregressive (plus cross-lags) structure. In this case, let’s assume that autoregressive stability is .90, which means that after 10 waves the stability is still 0.35 (actually slightly higher because of the cross-lagged effects). With fewer waves, this would look even more traity, even though there is no stable trait variance at all.</p>
+<p>You can then generate and add a very small trait factor (in this case, accounting for one-tenth the amount of variance as in the autoregressive components).</p>
 <pre class="r"><code>## Generate clpm data with high stability
 set.seed(1214)
 clpm_data2 &lt;- gen_starts(n = 10000, 
@@ -521,49 +525,51 @@ names(combo_data2) &lt;- tolower(names(combo_data2))
 clpm_means2 &lt;- data.frame(x=rowMeans(clpm_data2[,1:10]), y=rowMeans(clpm_data2[,11:20]))
 combo_means2 &lt;- data.frame(xc=rowMeans(combo_data2[,1:10]), yc=rowMeans(combo_data2[,11:20]))
 all_means2 &lt;- cbind(clpm_means2, combo_means2, st_data2)
-names(all_means2) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri&quot;), each=2), c(&quot;x&quot;,&quot;y&quot;), sep = &quot;_&quot;)
-
-## Fit clpm data
+names(all_means2) &lt;- paste(rep(c(&quot;clpm&quot;, &quot;combo&quot;, &quot;ri&quot;), each=2), c(&quot;x&quot;,&quot;y&quot;), sep = &quot;_&quot;)</code></pre>
+<pre class="r"><code>## Fit clpm data
 fit_clpm2 &lt;- lavaan(clpm10_c, data = clpm_data2)
 #summary(fit_clpm2)
 
 ## Models with combo data
 fit_ri2 &lt;- lavaan(ri_clpm10_c, data = combo_data2)
 #summary(fit_ri2)</code></pre>
-<p>The RI-CLPM again recovers the correct parameters (I won’t show this, but you can check). However, what people are “typically like” (i.e., their means across all waves) are only slightly related to the actual stable trait variable (whcih we have access to because we generated them separately). The following table shows the correlations between the means for the combined Trait/AR data and the means for the two components.</p>
+<p>The RI-CLPM again recovers the correct parameters (I won’t show this, but you can check). However, what people are “typically like” (i.e., their means across all waves) are only slightly related to the actual stable trait variable (which we have access to because we generated the scores separately). The following table shows the correlations between the means for the combined Trait/AR data and the means for the two components.</p>
 <table>
 <caption>Correlation Between Between-Person Variance in Different Components</caption>
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="right">combo_x</th>
-<th align="right">combo_y</th>
+<th align="right">Combined Scores for X</th>
+<th align="right">Combined Scores for Y</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">clpm_x</td>
+<td align="left">CLPM Means for X</td>
 <td align="right">0.94</td>
 <td align="right">0.57</td>
 </tr>
 <tr class="even">
-<td align="left">clpm_y</td>
+<td align="left">CLPM Means for Y</td>
 <td align="right">0.58</td>
 <td align="right">0.94</td>
 </tr>
 <tr class="odd">
-<td align="left">ri_x</td>
+<td align="left">Random Intercept Means for X</td>
 <td align="right">0.33</td>
 <td align="right">0.28</td>
 </tr>
 <tr class="even">
-<td align="left">ri_y</td>
+<td align="left">Random Intercept Means for Y</td>
 <td align="right">0.26</td>
 <td align="right">0.33</td>
 </tr>
 </tbody>
 </table>
-<p>So in this case, I think it would be wrong to interpret the cross-lagged paths in this model as reflecting the associations between deviations from one’s typical level.</p>
+<p>So in this case, I think it would be wrong to interpret the cross-lagged paths in this model as reflecting the associations between deviations from one’s typical level, one’s mean level, or anything else like that.</p>
+<p>The reason I think that this is important is that Orth and Lüdtke’s primary argument against using the RI-CLPM is that we often don’t want to know whether “deviations from a person’s mean at Time 1 predict their deviations from mean in a different variable at Time 2.” But if that interpretation is wrong, then that takes away their primary reason for avoiding modeling random intercepts. They might be able to reframe in a way that allows them to argue that they aren’t interested in a what’s actually left after pulling out the random intercept, but I think it would be a different argument than they currently make, and I think it would necessarily be much more convoluted.</p>
+<p>Anyway, given that nobody else seems to have this problem with the standard interpretations, how am I thinking about this incorrectly?</p>
+</div>
 
 
 

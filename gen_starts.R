@@ -16,7 +16,7 @@ gen_starts <- function(n=500,      # N to generate
                        yx=.4,      # Cross lag (Y regressed on X)
                        xy=.2,      # Cross lag (X regressed on Y)
                        cor_xy=.5,  # Correlation between X and Y (as correlation)
-                       cor_xyr=.2, # Correlation between X and Y residuals  (as correlation)
+                       cor_xyr=.2, # Correlation between X and Y residuals  (no longer used; calculated for stationarity)
                        xr=0,       # Measurement error for X
                        yr=0        # Measurement error for Y
                        ) {
