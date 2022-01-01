@@ -2,6 +2,12 @@
 ## Function to generate STARTS/CLPM/RI-CLPM Data
 ################################################################################
 
+## Some of the initial guidance for simulating the data was taken from here:
+## https://bookdown.org/marklhc/notes/simulation-example-on-structural-equation-modeling-sem.html
+##
+## Stationarity constraints were based on those in the STARTS model here:
+## https://github.com/alexanderrobitzsch/STARTS
+
 library(mnormt)
 
 gen_starts <- function(n=500,      # N to generate
@@ -21,23 +27,13 @@ gen_starts <- function(n=500,      # N to generate
                        yr=0        # Measurement error for Y
                        ) {
 
-    ## ## Stationarity Constraints
-    ## Cxx <- matrix(c(x, cor_xy, cor_xy, y), nrow = 2)
-    ## bx <- matrix(c(stab_x,xy), nrow = 2)
-    ## by <- matrix(c(yx, stab_y), nrow = 2)
-    ## wxr <- x - t(bx) %*% Cxx %*% bx
-    ## wyr <- y - t(by) %*% Cxx %*% by
-    ## cor_xyr <- cor_xy  * (1 - stab_x*stab_y - xy*yx) - stab_x*xy*wxr - stab_y*yx*wyr
-
-    ## Alternative Stationarity Constraints
+    ## Stationarity Constraints
     wxr <- (1-stab_x^2)*x - 2*stab_x*xy*cor_xy - xy^2*y
     wyr <- (1-stab_y^2)*y - 2*stab_y*yx*cor_xy - yx^2*x
     cor_xyr <- (1-stab_x*stab_y-xy*yx)*cor_xy - stab_x*yx*x - stab_y*xy*y
 
     ## Transform correlations into covariances for matrices
     cor_i <- cor_i * (sqrt(ri_x) * sqrt(ri_y))
-    #cor_xyr <- cor_xyr * (sqrt(wxr) * sqrt(wyr))
-    ##
 
     ## Initialize Matrices
     lambda <- matrix(0, nrow = 2 * nwaves, ncol = 2 + 2 * nwaves,
@@ -129,7 +125,6 @@ gen_starts <- function(n=500,      # N to generate
            lambda <- lambda)))
     diag_length <- (2*nwaves) + sum(ri_x>0, ri_y>0) ## Dimensions of identity matrix
     ## Generate latent factor scores
-    ##eta <- rmnorm(500, mean = 0, varcov = psi)
     eta <- rmnorm(n, varcov = (solve(diag(diag_length)-beta) %*%
                                psi %*% t(solve(diag(diag_length)-beta))))
     ## Generate residuals (all zero in ri-clpm)

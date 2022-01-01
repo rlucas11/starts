@@ -9,6 +9,7 @@
 
 library(shiny)
 library(lavaan)
+library(DiagrammeR)
 #library(knitr)
 
 source("scripts/gen_starts.R")
@@ -21,8 +22,8 @@ source("scripts/starts_c.R")
 ui <- fluidPage(
 
     # Application title
-    titlePanel("Generating CLPM/RI-CLPM/STARTS Data"),
-
+    titlePanel("Generating and Modeling CLPM/RI-CLPM/STARTS Data"),
+    
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
@@ -31,40 +32,42 @@ ui <- fluidPage(
                         min = 0,
                         value = 500,
                         width = "25%"),
-            titlePanel("Variances (Using STARTS Terminology)"),
+            h3("Variances (Using STARTS Terminology)"),
+            h4("X Variable"),
             fluidRow(
                 column(4, numericInput("st_x",
-                                       "X Stable Trait",
+                                       "Stable Trait",
                                        min = 0,
                                        step = .05,
                                        value = 1)),
                 column(4, numericInput("ar_x",
-                                       "X Autoregressive",
+                                       "Autoregressive",
                                        min = 0,
                                        step = .05,
                                        value = 1)),
                 column(4, numericInput("state_x",
-                                       "X State",
+                                       "State",
                                        min = 0,
                                        step = .05,
                                        value = 1))),
+            h4("Y Variable"),
             fluidRow(
                 column(4, numericInput("st_y",
-                                       "Y Stable Trait",
+                                       "Stable Trait",
                                        min = 0,
                                        step = .05,
                                        value = 1)),
                 column(4, numericInput("ar_y",
-                                       "Y Autoregressive",
+                                       "Autoregressive",
                                        min = 0,
                                        step = .05,
                                        value = 1)),
                 column(4, numericInput("state_y",
-                                       "Y State",
+                                       "State",
                                        min = 0,
                                        step = .05,
                                        value = 1))),
-            titlePanel("Autoregressive Parameters"),
+            h3("Autoregressive Parameters"),
             fluidRow(
                 column(6, numericInput("stability_x",
                                        "Stability of X",
@@ -91,7 +94,7 @@ ui <- fluidPage(
                                        max = 1,
                                        step = .05,
                                        value = .2))),
-            titlePanel("Correlations"),
+            h3("Correlations"),
             fluidRow(
                 column(4, numericInput("st_cor",
                                        "Correlation Between Stable Traits:",
@@ -109,7 +112,14 @@ ui <- fluidPage(
             checkboxInput("run_starts",
                           label = "Run Starts (Takes Longer)",
                           value = FALSE),
-            actionButton("update", "Update Data")
+            actionButton("update", "Simulate Data and Run Models"),
+            p(),
+            h3("How To Use This App"),
+            p("This Shiny App generates 10 waves of data for two variables, based on a bivariate \"Stable Trait, Autoregressive Trait, State\" (STARTS) Model. The STARTS model decomposes the variance into a Stable Trait, an Autoregressive Trait, and a State, and the App allows you to specify the variance for each component. You can also specify correlations among components, the stability of the autoregressive part, and cross-lagged paths. A five-wave version of this model is presented in the figure."),
+            p("The Random Intercept Cross-Lagged Panel Model (RI-CLPM) is equivalent to a STARTS model without the state variance; the Cross-Lagged Panel Model (CLPM) is equivalent to the RI-CLPM without the stable trait. Therefore you can specify different data generating models by setting these varianes to zero."),
+            p("The app then runs the CLPM, RI-CLPM, and (optionally) STARTS models using the generated data"),
+            p("The purpose of this app is to test what happens to cross-lagged paths in the CLPM or RI-CLPM when either the Stable Trait or State variances are omitted from the model."),
+            p("By default, the app only runs the CLPM and RI-CLPM. You can also try the full STARTS model on the generated data, but it can take a few extra seconds to run, so you have to explicitly ask for this output. Also note that you can specify values for which the data are impossible to generate (e.g., high stability plus strong cross-lagged paths). I don't have good error checking for this yet, so if the page freezes, just reload to restart.")
         ),
 
         # Show a plot of the generated distribution
@@ -119,14 +129,100 @@ ui <- fluidPage(
           textOutput("riclpm_results"),
           tableOutput("riclpm_table"),
           textOutput("starts_results"),
-          tableOutput("starts_table")
+          tableOutput("starts_table"),
+          grVizOutput('starts', width = "50%")
         )
     )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+
+    output$starts <- renderGrViz({
+        grViz( " digraph D {
+  label = 'The Stable Trait, Autoregressive Trait, State (STARTS) Model'
+  ranksep=.5;
+  node [shape = ellipse];
+  STX [label='X Stable\nTrait']; 
+  STY [label='Y Stable\nTrait'];
+  node [shape = ellipse, width = 1];
+  ARX1 ARX2 ARX3 ARX4 ARX5;
+  ARY1 ARY2 ARY3 ARY4 ARY5;
+  node [shape = box, width = 1];
+  X1 X2 X3 X4 X5
+  Y1 Y2 Y3 Y4 Y5
+  node [shape = circle, width = .05, fontsize='10'];
+  sx1 sx2 sx3 sx4 sx5
+  sy1 sy2 sy3 sy4 sy5
+    
+  {rank = same X1 X2 X3 X4 X5}
+  {rank = same ARX1 ARX2 ARX3 ARX4 ARX5}
+  {rank = same ARY1 ARY2 ARY3 ARY4 ARY5}
+  {rank = same Y1 Y2 Y3 Y4 Y5}
+  {rank = same sx1 sx2 sx3 sx4 sx5}
+  {rank = same sy1 sy2 sy3 sy4 sy5}
   
+  edge [dir = back, label = '1'];
+  X1 -> ARX1
+  X2 -> ARX2
+  X3 -> ARX3
+  X4 -> ARX4
+  X5 -> ARX5
+  
+  edge [dir = ''];
+  
+  ARX1 -> ARX2 -> ARX3 -> ARX4 -> ARX5
+  
+  edge [label ='']
+  ARX1 -> ARY2
+  ARX2 -> ARY3
+  ARX3 -> ARY4
+  ARX4 -> ARY5
+  ARY1 -> ARX2
+  ARY2 -> ARX3
+  ARY3 -> ARX4
+  ARY4 -> ARX5
+  
+    edge [label ='1']
+  ARY1 -> ARY2 -> ARY3 -> ARY4 -> ARY5
+  
+  ARY1 -> Y1
+  ARY2 -> Y2
+  ARY3 -> Y3
+  ARY4 -> Y4
+  ARY5 -> Y5
+  
+  STX -> {X1, X2, X3, X4, X5}
+  
+  edge [dir=back];
+  {Y1, Y2, Y3, Y4, Y5} -> STY
+  
+  edge [dir='']
+  
+  sx1 -> X1
+  sx2 -> X2
+  sx3 -> X3
+  sx4 -> X4
+  sx5 -> X5
+  
+  edge [dir=back]
+  Y1 -> sy1
+  Y2 -> sy2
+  Y3 -> sy3
+  Y4 -> sy4
+  Y5 -> sy5
+  
+  edge [style=invis]
+  STX -> {sx1, sx2, sx3, sx4, sx5}
+  {sy1, sy2, sy3, sy4, sy5} -> STY
+  
+  edge [style = '', dir=both, label = ''];
+  ARX1 -> ARY1
+  STX -> STY
+  
+
+}"
+)})
   
   observeEvent(input$update, {
     data <- gen_starts(n=input$n,
