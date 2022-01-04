@@ -260,7 +260,7 @@ server <- function(input, output) {
                               "Variance of Y Random Intercept",
                               "Variance of Autoregressive X",
                               "Variance of Autoregressive Y",
-                              "Correlation Between X and Y RI",
+                              "Correlation Between X and Y Random Intercepts",
                               "Correlation Between X and Y Autoregressive")
     output$riclpm_table <- renderTable(riclpm_table, rownames = TRUE)
 
