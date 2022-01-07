@@ -22,19 +22,20 @@ gen_starts <- function(n=500,      # N to generate
                        yx=.4,      # Cross lag (Y regressed on X)
                        xy=.2,      # Cross lag (X regressed on Y)
                        cor_xy=.5,  # Correlation between X and Y (as correlation)
-                       cor_xyr=.2, # Correlation between X and Y residuals  (no longer used; calculated for stationarity)
                        xr=0,       # Measurement error for X
                        yr=0        # Measurement error for Y
                        ) {
 
-    ## Stationarity Constraints
-    wxr <- (1-stab_x^2)*x - 2*stab_x*xy*cor_xy - xy^2*y
-    wyr <- (1-stab_y^2)*y - 2*stab_y*yx*cor_xy - yx^2*x
-    cor_xyr <- (1-stab_x*stab_y-xy*yx)*cor_xy - stab_x*yx*x - stab_y*xy*y
-
     ## Transform correlations into covariances for matrices
     cor_i <- cor_i * (sqrt(ri_x) * sqrt(ri_y))
+    cor_xy <- cor_xy * (sqrt(x) * sqrt(x))
 
+    ## Stationarity Constraints
+    ifelse(x==0, wxr <- 0, wxr <- (1-stab_x^2)*x - 2*stab_x*xy*cor_xy - xy^2*y)
+    ifelse(y==0, wyr <- 0, wyr <- (1-stab_y^2)*y - 2*stab_y*yx*cor_xy - yx^2*x)
+    ifelse(x==0 | y==0, cor_xyr <- 0, cor_xyr <- (1-stab_x*stab_y-xy*yx)*cor_xy - stab_x*yx*x - stab_y*xy*y)
+
+    
     ## Initialize Matrices
     lambda <- matrix(0, nrow = 2 * nwaves, ncol = 2 + 2 * nwaves,
                      dimnames = list(c(paste0("x",1:nwaves),
@@ -102,6 +103,7 @@ gen_starts <- function(n=500,      # N to generate
         beta[xcrow, xccol] <- xy
     }
     ## Remove rows from matrices before generating data if no variance
+    ## adjust psi matrix
     ifelse(ri_x==0 & ri_y==0,
            psi <- psi[-c(1:2),-c(1:2)],
     ifelse(ri_x==0 & ri_y>0,
@@ -109,6 +111,15 @@ gen_starts <- function(n=500,      # N to generate
     ifelse(ri_x>0 & ri_y==0,
            psi <- psi[-2,-2],
            psi <- psi)))
+    ifelse(x==0 & y==0,
+           psi <- psi[-c(3:(2+(2*nwaves))),-c(3:(2+(2*nwaves)))],
+    ifelse(x==0 & y > 0,
+           psi <- psi[-c(3:(2+nwaves)),-c(3:(2+nwaves))],
+    ifelse(x > 0 & y==0,
+           psi <- psi[-c((3+nwaves):(3+(2*nwaves))),-c((3+nwaves):(3+(2*nwaves)))],
+           psi <- psi)))
+
+    ## adjust beta matrix
     ifelse(ri_x==0 & ri_y==0,
            beta <- beta[-c(1:2),-c(1:2)],
     ifelse(ri_x==0 & ri_y>0,
@@ -116,6 +127,17 @@ gen_starts <- function(n=500,      # N to generate
     ifelse(ri_x>0 & ri_y==0,
            beta <- beta[-2,-2],
            beta <- beta)))
+    ifelse(x==0 & y==0,
+           beta <- beta[-c(3:(2+(2*nwaves))),-c(3:(2+(2*nwaves)))],
+    ifelse(x==0 & y > 0,
+           beta <- beta[-c(3:(2+nwaves)),-c(3:(2+nwaves))],
+    ifelse(x > 0 & y==0,
+           beta <- beta[-c((3+nwaves):(3+(2*nwaves))),-c((3+nwaves):(3+(2*nwaves)))],
+           beta <- beta)))
+
+
+
+    ## adjust lambda matrix
     ifelse(ri_x==0 & ri_y==0,
            lambda <- lambda[,-c(1:2)],
     ifelse(ri_x==0 & ri_y>0,
@@ -123,7 +145,15 @@ gen_starts <- function(n=500,      # N to generate
     ifelse(ri_x>0 & ri_y==0,
            lambda <- lambda[,-2],
            lambda <- lambda)))
-    diag_length <- (2*nwaves) + sum(ri_x>0, ri_y>0) ## Dimensions of identity matrix
+    ifelse(x==0 & y==0,
+           lambda <- lambda[,-c(3:(2+(2*nwaves)))],
+    ifelse(x==0 & y > 0,
+           lambda <- lambda[,-c(3:(2+nwaves))],
+    ifelse(x > 0 & y==0,
+           lambda <- lambda[,-c((3+nwaves):(3+(2*nwaves)))],
+           lambda <- lambda)))
+
+    diag_length <- (x>0)*nwaves + (y>0)*nwaves + sum(ri_x>0, ri_y>0) ## Dimensions of identity matrix
     ## Generate latent factor scores
     eta <- rmnorm(n, varcov = (solve(diag(diag_length)-beta) %*%
                                psi %*% t(solve(diag(diag_length)-beta))))
