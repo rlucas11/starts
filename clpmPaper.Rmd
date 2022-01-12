@@ -1,0 +1,270 @@
+---
+title: "It Is Time To Abandon the Cross-Lagged Panel Model"
+shorttitle: "Abandon the CLPM"
+author: 
+  - name: Richard E. Lucas
+    affiliation: 1
+    corresponding: yes    # Define only one corresponding author
+    address: "316 Physics Rd., Michigan State University, East Lansing, MI 48823"
+    email: "lucasri@msu.edu"
+affiliation:
+  - id: 1
+    institution: "Department of Psychology, Michigan State University"
+
+
+abstract: |
+  CLPM 
+  
+  
+keywords: "cross-lagged panel model, longitudinal, structural equation modeling"
+
+wordcount: 
+
+header-includes:
+   - \usepackage{todonotes}
+   - \usepackage{setspace}
+   - \AtBeginEnvironment{tabular}{\singlespacing}
+   - \AtBeginEnvironment{lltable}{\singlespacing}
+   - \AtBeginEnvironment{ThreePartTable}{\singlespacing}
+   - \AtBeginEnvironment{tablenotes}{\doublespacing}
+   - \captionsetup[table]{font={stretch=1.5}}
+   - \captionsetup[figure]{font={stretch=1.5}}
+   - \raggedbottom
+   
+bibliography:
+   - '`r paste0(Sys.getenv("HOME"),"/Dropbox/MyLibraryZ2.bib")`'
+floatsintext: yes
+mask: no
+linenumbers: no
+documentclass: "apa6"
+classoption: "man"
+output: 
+  papaja::apa6_pdf:
+  fig_caption: yes
+---
+
+```{r setup, include=FALSE}
+library(lavaan)
+library(tidyverse)
+library(knitr)
+library(DiagrammeR)
+library(lavaanPlot)
+
+source("scripts/gen_starts.R") ## Generate data
+source("scripts/clpm10_c.R") ## Lavaan model for 10-wave clpm with constraints
+source("scripts/ri_clpm10_c.R") ## Lavaan model for 10-wave ri-clpm with constraints
+source("scripts/starts_c.R") ## Lavaan model for 10-wave starts with constraints
+
+
+```
+
+The cross-lagged panel model (CLPM) is a widely used technique for examining causal processes using longitudinal data. With at least two waves of data, it is possible to estimate the association between a predictor at Time 1 and an outcome at Time 2, controlling for a measure of the outcome at Time 1. With some assumptions, this association can be interpreted as a causal effect of the predictor on the outcome.
+
+@hamaker_critique_2015 pointed out that the CLPM does not adequately account for stable-trait-level confounds, and they proposed the random-intercept cross-lagged panel model (RI-CLMP) as an alternative. The RI-CLPM includes stable trait components that reflect variance in the predictor and outcome that is stable across waves. Hamaker et al. showed that failure to account for these random intercepts and the associations between them can lead to incorrect conclusions about cross-lagged paths. They described the RI-CLPM as a multilevel model that separates between-person effects from within-person effects. A diagram of the random-intercept cross-lagged panel model is shown in Figure \@ref(fig:riclpmFig). As others [e.g., @ludtke_critique_2021] have noted, this critique of the cross-lagged panel model has had an important impact on researchers who use longitudinal data.
+
+```{r riclpmFig, echo=FALSE, message=FALSE, warning=FALSE, fig.cap='Diagram of the Random-Intercept Cross-Lagged Panel Model (Note: Residual variances for the autoregressive, or "within-person" parts of the model are estimated, but not shown, whereas the residual variances for the observed variables are actually set to zero'}
+knitr::include_graphics("images/rclpm.png")
+```
+
+
+Despite this impact, debate about the relative merits of the CLPM and RI-CLPM continue. Critics of the RI-CLPM [e.g., @orth_testing_2021; @ludtke_critique_2021] have argued that sometimes, we are actually interested in the between-person effects that a classic CLPM tests and that the choice of model should depend on one's theories about the underlying process. The goal of this paper is to examine these critiques, focusing first on the accuracy of the critics interpretation of the RI-CLPM, followed by simulations that demonstrate the problems with the CLPM and the utility of its alternatives. I conclude that there is no situation where the CLPM is preferable to the RI-CLPM and should probably be abandoned as an approach for examining causal processes. 
+
+## The Ambiguous Nature of "Between" Versus "Within"
+
+In presenting the RI-CLPM, @hamaker_critique_2015 emphasized that its strength was its ability to separate between-person effects from within-person effects. I believe, however, that the terms "within-person" and "between-person" are ambiguous, and this ambiguity has led to incorrect interpretations of the RI-CLPM and its alternatives. Indeed, @usami_within-person_2021 recently noted that these terms are used differently in different contexts. I will try to show how this inconsistent use leads to problems in the interpretation of the RI-CLPM.
+
+When describing the RI-CLPM, @orth_testing_2021 argue that "a potential disadvantage of the proposed alternatives to the CLPM is that they estimate within-person prospective effects only, but not between-person prospective effects" (p. 1014). They go on to note that "in many fields researchers are also interested in gaining information about the consequences of between-person differences" (p. 1014). Thus, their central objection to the RI-CLPM is that it isolates within-person effects, when sometimes that is not desirable. *But what is a within-person effect?* 
+
+When answering this question, @orth_testing_2021 are relatively precise: They state that "in the RI-CLPM, a cross-lagged effect indicates whether a within-person deviation from the *trait level* of one construct has a prospective effect on change in the within-person deviation from the *trait level* of the other construct" (p. 1014, emphasis mine). However, the less precise restatement that they later use, along with some conclusions that they draw about this effect, suggest to me that their interpretation of the RI-CLPM is wrong. For instance, they rephrase their original statement to say that a within-person effect (in the context of their substantive example---a test of the causal effect of self-esteem on depression) means that "When individuals have lower self-esteem than usual, they will experience a subsequent increase in depression." But what is this "usual" level from which people deviate? Can we interpret the random intercept from the RI-CLPM as a person's "usual level?" And what exactly is left after scores are deviated from this random intercept?
+
+@orth_testing_2021 appear to (incorrectly) assume that by including a random intercept, the RI-CLPM removes all between-person variance from the cross-lagged part of the model. In fact, they state this explicitly. In their discussion, they state that "a limitation of the RI-CLPM is that it does not provide any information about the consequences of between-person differences. In the RI-CLPM, the between-person differences are relegated to the random intercept factors" (p. 1026). But this statement reflects a fundamental misunderstanding of the RI-CLPM, one that results from the ambiguous use of the terms "between" and "within." Later on that page, Orth et al. state that "The RI-CLPM includes [an] unrealistic assumption, specifically that the between-person variance in constructs is perfectly stable" (p. 1026). But this is where they are wrong: The developers of the RI-CLPM simply restrict the term "between-persons" to refer the variance that is perfectly stable. This is an issue of terminology. The RI-CLPM does not assume that all between-persons variance is perfectly stable, it simply *defines* "between-persons" variance as the variance that *is* perfectly stable. There is clearly between-person variance (as Orth et al. appear to interpret it) left in the cross-lagged part of the model.
+
+## An Example
+
+To demonstrate, take the following example, where data are generated from a true autoregressive model with cross-lagged paths. For comparison with the substantive discussion by Orth et al., let's assume that X is self-esteem and Y is depression.  Specifically, in this example, I generated data for 10 waves of self-esteem and depression data, with no random intercept, starting variance of 1 for self-esteem and depression, stabilities of .5 for each, true cross-lagged paths of .50 from self-esteem to depression and .00 from depression to self-esteem. I also specified a Wave 1 correlation between self-esteem and depression of -.5. The code for the function to generate the data is available [here](https://github.com/rlucas11/starts/blob/main/gen_starts.R) and included in the appendix.
+
+
+```{r true_clpm, echo=FALSE}
+clpm_data <- gen_starts(n = 10000, 
+                        nwaves = 10,
+                        x = 1, # Variance in Autoregressive Component for X
+                        y = 1, # Variance in Autoregressive Component for Y
+                        ri_x = 0, # Random Intercept Variance for X
+                        ri_y = 0, # Random Intercept Variance for Y
+                        xr = 0, # Measurement Error for X
+                        yr = 0, # Measurement Error for Y
+                        stab_x = .50, # Stability of Autoregressive Component for X
+                        stab_y = .50, # Stability of Autoregressive Component for Y
+                        yx = -.50, # Crosslagged path, Y regressed on X
+                        xy = .00, # Crosslagged path, X regressed on Y
+                        cor_xy = -.5, # Correlation between Autoregressive Component for X and Y
+                        )
+
+## Fit CLPM Model
+fit_clpm <- lavaan(clpm10_c, data = clpm_data)
+
+```
+
+According to @orth_testing_2021, significant cross-lagged paths from self-esteem to depression in this model can be interpreted to mean that "When individuals have low self-esteem (relative to others), they will experience a subsequent rank-order increase in depression compared to individuals with high self-esteem." In other words, this model links between-person differences in self-esteem at Time 1 to between-person differences in depression at Time 2. They argue that this is precisely what they want to estimate in many situations.
+
+They also argue that when you test a model that includes random intercepts, the interpretation of the cross-lagged paths change. They state that a significant cross-lagged path in the context of the RI-CLPM means that "When individuals have lower self-esteem than usual, they will experience a subsequent increase in depression" (p. 1014) I think the problem is that what is captured by the "stable trait" in the RI-CLPM model is potentially (and frequently) different than a person's "average level" or "usual level." I think that these two things can be very different, both conceptually and empirically. This is because the stable trait does not incorporate all between-person variance; it only includes variance that is perfectly stable across all waves. So what a substantial cross-lagged path really reflects in a RI-CLPM context is that "When individuals have lower self-esteem *than what would be predicted from their levels on the stable trait*, they will experience a subsequent increase in depression." 
+
+This distinction may sound subtle, but it is important. For one thing, if one tries to fit the RI-CLPM to data without a stable-trait component---even data with strong wave-to-wave autoregressive stability---the estimate for the variance of the random intercept will be zero. If the RI-CLPM simply took what between-person variance exists and "relegated" it to a stable-trait component that reflected a person's long-term average, you would always be able to find a random intercept as long as some reasonably stable between-person variance exists. If you tried to fit a RI-CLPM to the data I generated, the estimated variance for the random intercept would be zero (if the model converged), even though between-person variance clearly exists in these data. 
+
+Imagine that we take the same data from above, but now we add some stable-trait variance. Let's assume for this example that it is just shared method variance. Specifically, we can generate data representing a method factor for self-esteem and one for depression. Let's assume that they are pretty strongly (and negatively, given the direction of the items) correlated (though this doesn't really matter for this specific example). We can then just add the generated method-variance scores to the original data. 
+
+
+```{r add_ri}
+## Generate latent X and Y intercepts (perfectly stable method variance, correlated .80 for X and Y)
+st_data <- rmnorm(10000, varcov = matrix(c(.50, -.40, -.40, .50), nrow=2))
+
+## Combine data
+combo_data <- cbind(clpm_data, st_data)
+
+## Add method variance to original scores
+temp_x <- data.frame(sapply(seq(1,10), function(x) rowSums(combo_data[,c(x,21)])))
+temp_y <- data.frame(sapply(seq(11,20), function(x) rowSums(combo_data[,c(x,22)])))
+names(temp_y) <- paste0("y", 1:10)
+
+## Combine dataframes
+combo_data <- cbind(temp_x, temp_y)
+names(combo_data) <- tolower(names(combo_data))
+```
+
+```{r means, echo=FALSE, message=FALSE, warning=FALSE}
+
+## Find person means for original data and combined data
+clpm_means <- data.frame(x=rowMeans(clpm_data[,1:10]), y=rowMeans(clpm_data[,11:20]))
+combo_means <- data.frame(xc=rowMeans(combo_data[,1:10]), yc=rowMeans(combo_data[,11:20]))
+all_means <- cbind(clpm_means, combo_means, st_data)
+names(all_means) <- paste(rep(c("clpm", "combo", "ri"), each=2), c("x","y"), sep = "_")
+```
+
+If we fit the RI-CLPM to the combined data, you get exactly what you'd expect: The estimates for the random intercept simply reflect the method variance we've added. The variance of each estimated random intercept is about .50 and the covariance is about -.40. These random intercepts don't capture any of the between-person differences in the original data (which are substantial) because these individual differences are not *perfectly* stable across waves. In other words, the model does not, as Orth et al. suggested "relegate all between-person differences to the random intercept," it simply pulls out those between-person differences that are completely stable over time. 
+
+More importantly, the estimates for the original autoregressive, cross-lagged part of the model are the same as what you get when you run the CLPM on the original data. The variances, stabilities, and cross-lagged paths are the same (as they should be). Contrary to Orth et al., the cross-lagged part of the model still links the same between-person variance in self-esteem at Time 1 to between-person variance in depression at Time 2. The interpretation of this part of the model is exactly the same when no stable-trait variance exists as it is when there is stable-trait variance, but that stable-trait variance is modeled using the RI-CLPM.
+
+```{r models, echo=FALSE}
+
+## Models with combo data
+fit_ri <- lavaan(ri_clpm10_c, data = combo_data)
+#summary(fit_ri)
+
+```
+
+#### Estimates from RI-CLPM (Using the Data With a Stable Trait)
+
+```{r riclpm_table, echo=FALSE, message=FALSE, warning=FALSE}
+riclpm_table <- parameterEstimates(fit_ri)[c(41,50,68,59,77,78,79,80,99,100),c(5:6)]
+rownames(riclpm_table) <- c("Stability of Self-Esteem",
+                            "Stability of Depression",
+                            "Self-Esteem Predicted by Depression",
+                            "Depression Predicted by Self-Esteem",
+                            "Variance of Self-Esteem Random Intercept",
+                            "Variance of Depression Random Intercept",
+                            "Variance of Autoregressive Self-Esteem",
+                            "Variance of Autoregressive Depression",
+                            "Covariance Between Random Intercepts",
+                            "Covariance Between Autoregressive Components")
+kable(riclpm_table, digits=2)
+```
+
+#### Estimates from CLPM (Using The Original Data)
+
+```{r clpm_table, echo=FALSE, message=FALSE, warning=FALSE, results='as.is'}
+clpm_table <- parameterEstimates(fit_clpm)[c(1,2,3,4,37,38,57),c(5:6)]
+rownames(clpm_table) <- c("Stability of Self-Esteem",
+                          "Stability of Depression",
+                          "Self-Esteem Predicted by Depression",
+                          "Depression Predicted by Self-Esteem",
+                          "Variance of Self-Esteem",
+                          "Variance of Depression",
+                          "Covariance Between Self-Esteem and Depression")
+kable(clpm_table, digits = 2)
+
+```
+
+My point is that adding some stable trait variance (in this case, just some method variance) and then modeling this stable variance using the RI-CLPM doesn't suddenly make the cross-lagged part any more "within-persons" than it was before. Indeed, I am pretty sure that what @orth_testing_2021 would call a between-persons model---the CLPM fit to the original data I generated---would actually be described by @hamaker_critique_2015 as a within-persons model, not because of what the model is doing, but simply because there is no stable-trait variance. 
+
+
+## The Source of Confusion
+
+I think the source of the confusion about the RI-CLPM is that people use the terms "between" and "within" in different ways in different contexts. Many people (at least in my field) are used to thinking of the differences between within-person effects and between-person effects in the context of multilevel modeling. We are often warned that when testing multilevel models, if we are not careful about how we enter variables into the model, what may look like within-person effects (e.g., the "Level-1" effects in repeated-measures data analyzed in a multilevel modeling framework) can actually reflect a mix of between- and within-person associations. The recommended solution is often to person-center the data [e.g., @enders2007centering], where each observation now reflects a deviation from a person's mean. When centering this way, the Level-1 part of these models completely separates within-person variance from between---all between-person variance has been removed from this part of the model.
+
+The critics of the RI-CLPM often talk as if the RI-CLPM does this too (and to be fair, I think that the developers of the RI-CLPM are not as clear as they could have been about this point). For instance, @ludtke_critique_2021 state in their abstract that the cross-lagged effect from the RI-CLPM "is typically less relevant for testing causal hypotheses with longitudinal data *because it only captures temporary fluctuations around the individual person means* (p. 1, emphasis mine). But the RI-CLPM does not capture fluctuations around the person means, it captures deviations from the *perfectly stable trait*, which, as my example above demonstrates, can be a very different thing. This suggests to me that the critics of the RI-CLMP are incorrectly equating what the RI-CLPM does to what person-centering does in a more traditional multilevel model. 
+
+Why does this matter? Both of the main critics of the RI-CLPM have explicitly stated that their primary reason for avoiding the RI-CLPM is that it focuses so narrowly on within-person deviations from a person's "usual level"[^1]. For example, @ludtke_critique_2021 caution that "researchers should be aware that within-person effects are based on person-mean centered (i.e., ipsatized) scores that only capture temporary fluctuations around individual person means" which would be "less appropriate for understanding the potential effects of causes that explain differences between persons." But if the first part of that statement is incorrect (which I think it is), then the second does not follow. Similarly, all of the limitations of the RI-CLPM and all of the reasons for preferring the CLPM to the RI-CLPM discussed by @orth_testing_2021 (p. 1026) are based on an incorrect description of what the cross-lagged part of the RI-CLPM really does. Orth et al. conclude that "the RI-CLPM does not allow testing what many researchers ... are interested in: the prospective between-person effect" (p. 1026). I think the very term "prospective between-person effect" reflects the confusion about the meaning of the terms "between" and "within" that I've been talking about; but to the extent that such a thing exists, the RI-CLPM captures it just as well as the CLPM. 
+
+So if the RI-CLPM does not separate between- and within-person effects in the way that (at least some) people think that it does, why should we use it? There are some very good reasons, which I'll discuss in Part II of this post. 
+
+[^1]: Though @ludtke_critique_2021 have some additional concerns about the ability of the RI-CLPM to adequately account for unobserved confounders. 
+
+# Beyond "Within" and "Between"
+
+In my previous [post](/post/critiquing-the-critiques-of-the-cross-lagged-panel-model/), I suggested that at least some critiques of the Random-Intercept Cross-Lagged Panel Model (RI-CLPM)---along with the corresponding defenses of the more traditional Cross-Lagged Panel Model (CLPM)---were based on a fundamental misunderstanding of the RI-CLPM. Specifically, I argued that ambiguous and inconsistent use of the terms "between-person" and "within-person" (in the context of models and effects) led to incorrect interpretations of the "within-person" parts of the RI-CLPM. I argued that once these misinterpretations are corrected, many of the objections to the RI-CLPM become invalid. 
+
+
+Honestly, though, my concerns about the critiques of the RI-CLPM (and the defenses of the CLPM) emerged long before I had time to think through this issue, and I would still have concerns about these critiques even if my interpretation of these "within-person" effects was wrong. That is because the appeal of the RI-CLPM, to me, did not rest on its strengths as a multilevel model that separated within-person effects (no matter how they are defined) from between. Instead, I saw value in the RI-CLPM because it tested an extremely plausible alternative explanation of the underlying pattern of correlations that is being modeled when the CLPM is used[^1].
+
+[^1]: Ultimately, I think that Hamaker et al.'s [-@hamaker_critique_2015] framing is a more precise way of saying the same thing; my point is that we don't necessarily need to the within/between framing to understand the problems with the CLPM. 
+
+
+The logic of the CLPM is very similar to the logic of any other regression model where we assess whether one variable predicts another after controlling for relevant confounds. When we test whether Time 1 X predicts Time 2 Y after controlling for Time 1 Y, we hope to capture whether there is something unique about X---something that cannot be explained by the concurrent association between X and Y---that helps us predict Y at a later time. But as @westfall_statistically_2016 pointed out, if the measure that we include as a control (i.e., Time 1 X) is not a perfect measure of what we're trying to account for, then it is possible---indeed, quite easy---to find spurious "incremental validity" effects. This, I think, is a simpler way of thinking about the strengths of the RI-CLPM relative to the CLPM.
+
+## It's Incredibly Easy to Find Spurious Cross-Lagged Effects
+
+The problem with the CLPM is that is easy---in fact, incredibly easy---to find spurious cross-lagged associations under conditions that are **extremely likely in the typical situations where the CLPM is used**. Hamaker et al. (2015) conducted simulations to show that the estimates from a cross-lagged panel model were often biased in realistic situations. I don't think they went far enough, though, in describing the practical implications of these simulations or showing just how likely spurious effects are in realistic situations. So the rest of this post simply builds on their simulations and tries to clarify when such spurious effects are likely to occur.
+
+Before I present the simulations themselves, it's necessary to point out that it is possible to think about these and other models as restricted versions of a more general model that describes various components of stability and change in variables over time [see @usami_unified_2019]. The RI-CLPM is equivalent to the CLPM with an added random intercept. The RI-CLPM is, in turn, nested within the Stable Trait, Autoregressive Trait, State (STARTS) model [@kenny_trait_1995; @Kenny2001]. 
+
+The RI-CLPM assumes that each assessment is completely determined by the stable trait and the autoregressive component, whereas the STARTS model incorporates an additional "state" component that reflects wave-specific variance in a measure that is unrelated to variance at all other waves. This state component can include reliable occasion-specific variance and measurement error. Given that a state component is quite likely in real-world data, the only reason to prefer the RI-CLPM to the STARTS is that the STARTS requires more waves of data and often results in estimation problems. So for the following simulations, I begin with a STARTS model, and then show how different situations affect estimated cross-lagged paths when the reduced CLPM is used.[^general]
+
+[^general]: I also acknowledge that the STARTS is a restricted version of the more general "unified" model, and when the data-generating model includes components that are ommitted from the STARTS, the estimates from the STARTS will also be biased. 
+
+![The STARTS Model. Residual variances for the autoregressive components are included but not shown in the figure.](images/starts.png)
+
+I also created a Shiny app that allows the user to specify any STARTS-like structure (including the restricted RI-CLPM or CLPM). The app then fits the RI-CLPM and CLPM (and optionally the STARTS) to the data it simulates. The app is [here](https://rlucas11.shinyapps.io/clpm/), though I only use the free tier at shinyapps.io, so you can also download the app from my [github page](https://github.com/rlucas11/clpm_app) if it is not available due to capacity issues.
+
+So, when can you find spurious effect? Let's go through a few common situations.
+
+### When The Constructs You're Measuring Are Correlated At The Stable-Trait Level
+
+If you are measuring a construct that includes some amount of stable-trait variance, and the constructs are associated at the stable-trait level, it is possible to find spurious cross-lagged paths. To be sure, this factor alone---correlated stable traits---only produces spurious cross-lagged effects when the correlations between these stable trait factors are quite high. For instance, if we simulate data, setting the variance of the X Stable Trait, the Y Stable Trait, the X Autoregressive Trait, and the Y Autoregressive Trait each to 1 (i.e., each contributes equally), you typically would not find a spurious cross-lagged correlation when the stable-trait correlation was .50, but you would reliably find spurious effects with correlations of .75 or higher. Note, however, that I did not specify any measurement error in this initial simulation.
+
+### When Your Measures Have Error
+
+When there is measurement error (as is very likely), this effect gets worse---potentially *much* worse. Let's specify a very simple model where the measures at each wave result from two latent stable traits (X and Y) correlated at .50, plus measurement error, but no autoregressive variance (and therefore, no cross-lagged paths). In other words, this is a STARTS model with the autoregressive variance set to 0. Even when the reliability is high (e.g., .80), fitting the CLPM model results in estimated cross-lagged paths large enough to be detected even with samples of just 100 people. Increasing the correlation between the two stable traits or lowering the reliability increases the size of these estimates even further. And as @westfall_statistically_2016 noted, larger sample sizes make it even easier to detect these spurious effects. So even when there are absolutely no within-person dynamics whatsoever, cross-lagged paths are not hard to find. 
+
+In other words, when the true data-generating model looks like this:
+
+![](images/traitState.png){width=50%}
+
+You will almost always find support for this:
+
+![](images/clpm.png){width=50%}
+
+That's a problem.
+
+This outcome is actually quite easy to understand. Indeed, we don't really need simulations at all to predict it. This result is a simple consequence of the issues that @westfall_statistically_2016 discussed. Because X and Y are measured with error at each occasion, controlling for Time 1 Y when predicting Time 2 Y from Time 1 X does not fully account for the true association between X and Y. There will still be a residual association between Time 1 X and Time 2 Y, which can be accounted for by the freed cross-lagged path in the CLPM. The RI-CLPM (and the STARTS) work because they do a better job accounting for this underlying association[^ar]. 
+
+[^ar]: One might argue that a model that just includes stable-trait variance and error is unrealistic, as there is sure to be some form of autoregressive structure to most variables we study. That's true, but the existence of this stable trait causes problems for the CLPM even when all three sources of variability (stable trait, autoregressive trait, and state) exist. Play around with the Shiny App to see its effects.
+
+At this point, it's important to highlight the fact that at least some of these effects are due more to the existence of measurement error than to the existence of the stable trait. For instance, we could simulate data with an autoregressive structure, set the variance of the stable trait components to zero, and specify no cross-lagged paths, and even with reliabilities of .80, there will be enough power to detect spurious cross-lagged effects with just a couple hundred participants. Again, Westfall and Yarkoni's  [-@westfall_statistically_2016] explanation can account for these results.
+
+In addition, measurement error also affects estimates from the RI-CLPM. If we specify a data-generating model that includes all three sources of variance (stable trait, autoregressive trait, and state/measurement error), but no cross-lagged paths, the CLPM will find substantial cross-lagged effects...but so will the RI-CLPM (at least if the autoregressive components of X and Y are correlated). The reasons for this are the same as those discussed above, though slightly harder to wrap your head around in this more complicated case. Note, this limitation of the RI-CLPM is not an argument *for* the CLPM (though it is an argument for using the STARTS, when possible).
+
+### When There Is Reliable Occasion-Specific Variance
+
+One response to the above simulations is to suggest that we simply need to use very reliable measures or perhaps model latent variables at each occasion instead of relying on observed variables with less than perfect reliability. This will certainly help, but it is important to remember that the "state" component in the STARTS model includes measurement error *and* reliable occasion-specific variance. And reliable state variance will affect these results in exactly the same way as random measurement error. Unfortunately, we don't know how common this reliable state component is in real data, though we have at least some evidence that it can exist and be large enough to be meaningful [@LucasInPressSIR]. In any case, even the use of latent occasions in the CLPM can't solve this problem. 
+
+## Two Final Observations
+
+The examples above focused almost entirely on cases where spurious effects were found when there were no cross-lagged paths in the data-generating model. However, failure to model associations between stable-trait components can also lead to the *underestimation* of real cross-lagged paths. For instance, we can use the Shiny App to specify a model with variances of 1 for the two stable traits and the two autoregressive components, and then specify stabilities of .5 for X and Y and correlations of .5 for both the random intercepts and the initial autoregressive components. If we simulate data with cross lagged paths of .5 from X to Y and .2 from Y to X, the RI-CLPM reproduces these effects perfectly. However, even with no measurement error, the estimates from the CLPM are half the size that they should be. So the RI-CLPM is not necessarily more conservative than the CLPM when testing cross-lagged effects. Of course, everyone knows that an incorrect model will not provide accurate estimates; but my point is that most variables that psychologists study likely have at least some stable-trait-like variance, and ignoring it can have important consequences for the results that are obtained. 
+
+Finally, most of the simulations described above set the variance components, stabilities, and reliabilities to be equal across the X and Y variables. Yet researchers often have predictions about which variables have causal priority. If these structural features differ---for instance if the measures of X are more reliable than the measures of Y, or the autoregressive part of X is more stable than the autoregressive part of Y---then this can lead to evidence that one variable has causal priority over the other. I won't go into detail about these effects as others have discussed them and because the Shiny App is available to play around with. But researchers often report support for the causal priority of one variable using data from a CLPM, and subtle differences in these structural and psychometric properties can lead to important differences. 
+
+## Wrapping Up
+
+After describing the various approaches available to model longitudinal data, @orth_testing_2021 made the following recommendation: "Before selecting a model, researchers should carefully consider the psychological or developmental process they would like to examine in their research, and then select a model that best estimates that process." This sounds like advice with which no one could argue.  But if there is a plausible alternative model that describes the data as well as (or better than) the model you prefer, then much more work is needed to defend the model you select. 
+
+The constructs that psychologists study very rarely have a purely autoregressive structure. At some point, the long-term stabilities of most constructs are stronger than would be suggested by the short-term stabilities and the length of time that has elapsed alone. This is likely because many constructs have at least some stable-trait variance. And if there is stable trait variance, it is quite plausible that two constructs correlate at the stable-trait level. The simulations describe above show that it is quite easy to find cross-lagged effects in the presence of correlated stable traits (especially when there is measurement error), and the RI-CLPM and STARTS models provide a way to test this compelling and plausible alternative model. Despite what your theory says, if you cannot rule this out, support for your theory in the data you are modeling is not strong. 
