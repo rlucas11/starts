@@ -1,13 +1,16 @@
-library(lavaan)
-library(tidyverse)
+## Load packages
+library(lavaan) ## Run models
+library(tidyverse) ## Data Manipulation
+library(rethinking) ## Parallel Simulations
 
+## Load Scripts
 source("scripts/gen_starts.R")
 source("scripts/clpm10_c.R")
 source("scripts/ri_clpm10_c.R")
 source("scripts/starts_c.R")
 source("run_sim.R")
 
-
+## Testing
 studyN=25      # N to generate
 nwaves=10   # Number of waves
 ri_x=1     # Random intercept variance for X
@@ -27,6 +30,8 @@ yr=.25       # Measurement error for Y
 temp <- lavaan(clpm10_c, data=gen_starts(n=25))
 
 
+
+## Function to simulate clpm data
 run_sim_clpm <- function(studyN,      
                        nwaves,   
                        ri_x,     
@@ -66,8 +71,6 @@ run_sim_clpm <- function(studyN,
 }
 
 
-studyN=25
-
 
 sims <- data.frame(t(replicate(n=1000, run_sim_clpm(studyN=25,      # N to generate
                                                    nwaves=10,   # Number of waves
@@ -87,24 +90,39 @@ sims <- data.frame(t(replicate(n=1000, run_sim_clpm(studyN=25,      # N to gener
                                simplify = TRUE)))
 
 
-library(rethinking)
 
-sims <- data.frame(t(mcreplicate(n=1000, run_sim_clpm(studyN=1000,      # N to generate
-                                                   nwaves=10,   # Number of waves
-                                                   ri_x=1,     # Random intercept variance for X
-                                                   ri_y=1,     # Random intercept variance for Y
-                                                   cor_i=.5,   # Correlation between intercepts
-                                                   x=2,        # AR variance for X
-                                                   y=2,        # AR variance for Y
-                                                   stab_x=.5,  # Stability of X
-                                                   stab_y=.5,  # Stability of Y
-                                                   yx=0,      # Cross lag (Y on X)
-                                                   xy=0,      # Cross lag (X on Y)
-                                                   cor_xy=.5,  # Correlation between X and Y
-                                                   xr=0,       # Measurement error for X
-                                                   yr=0       # Measurement error for Y
-                                                   ), mc.cores=16)))
-sum(sims$X2<.05 | sims$X4<.05)
-mean(sims$X1)
-mean(sims$X3)
+## Initialize Matrix
+results <- data.frame(value = numeric(),
+                      power = numeric(),
+                      estimatex = numeric(),
+                      estimatey = numeric())
 
+testValues <- c(25,50,75,100,250,500,1000)
+
+for (i in 1:length(testValues )) {
+    value <- testValues[i]
+    sims <- data.frame(t(mcreplicate(n=1000, run_sim_clpm(studyN=value,      # N to generate
+                                                          nwaves=10,   # Number of waves
+                                                          ri_x=1,     # Random intercept variance for X
+                                                          ri_y=1,     # Random intercept variance for Y
+                                                          cor_i=.5,   # Correlation between intercepts
+                                                          x=0,        # AR variance for X
+                                                          y=0,        # AR variance for Y
+                                                          stab_x=.5,  # Stability of X
+                                                          stab_y=.5,  # Stability of Y
+                                                          yx=0,      # Cross lag (Y on X)
+                                                          xy=0,      # Cross lag (X on Y)
+                                                          cor_xy=.5,  # Correlation between X and Y
+                                                          xr=.25,       # Measurement error for X
+                                                          yr=.25       # Measurement error for Y
+                                                          ), mc.cores=16)))
+    results[i,1] <- value
+    results[i,2] <- sum(sims$X2<.05 | sims$X4<.05)/1000
+    results[i,3] <- mean(sims$X1)
+    results[i,4] <- mean(sims$X3)
+}
+
+
+library(ggplot2)
+
+ggplot(aes(x=value, y=power), data=results) + geom_line()
