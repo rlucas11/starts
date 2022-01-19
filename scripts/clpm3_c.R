@@ -1,4 +1,4 @@
-clpm3 <- '
+clpm3_c <- '
 ## Regressions
 ##
 x2 ~ a*x1
