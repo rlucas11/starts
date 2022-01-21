@@ -103,6 +103,7 @@ run_sim_clpm(waves=5,
              reliability_y=.80       # Measurement error for Y
              )
 
+
 dataS <- gen_starts(n=studyN,
                     nwaves = nwaves,
                     ri_x = ri_x,
@@ -590,3 +591,12 @@ p <- ggplot(data = results2, aes(x = N, y = power, group = r)) +
 p
 
 ggsave("images/2WaveSimulation.png", width=6.5, height=8.5, units="in")
+
+
+## scratch
+temp <- results2 %>%
+    group_by(r, Reliability, Autoregressive) %>%
+    summarize(estimate=mean(estimatex))
+
+temp %>%
+    pivot_wider(names_from = Reliability, values_from = estimate)
