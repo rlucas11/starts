@@ -1,7 +1,9 @@
 ################################################################################
 ## Function to generate STARTS/CLPM/RI-CLPM Data
 ################################################################################
-
+##
+## Credits:
+##
 ## Some of the initial guidance for simulating the data was taken from here:
 ## https://bookdown.org/marklhc/notes/simulation-example-on-structural-equation-modeling-sem.html
 ##

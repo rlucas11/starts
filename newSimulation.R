@@ -14,7 +14,7 @@ source("scripts/gen_starts.R")
 source("scripts/clpm10_c.R")
 source("scripts/ri_clpm10_c.R")
 source("scripts/starts_c.R")
-source("run_sim.R")
+source("scripts/run_sim.R")
 
 
 ## Function to simulate clpm data
@@ -91,19 +91,19 @@ reliability_x <- .80
 reliability_y <- .80
 
 run_sim_clpm(waves=5,
-             studyN=25,      # N to generate
+             studyN=10000,      # N to generate
              ri_x=1,     # Random intercept variance for X
              ri_y=1,     # Random intercept variance for Y
-             cor_i=.5,   # Correlation between intercepts
-             x=0,        # AR variance for X
-             y=0,        # AR variance for Y
+             cor_i=0,   # Correlation between intercepts
+             x=1,        # AR variance for X
+             y=1,        # AR variance for Y
              stab_x=.5,  # Stability of X
              stab_y=.5,  # Stability of Y
              yx=0,      # Cross lag (Y on X)
              xy=0,      # Cross lag (X on Y)
              cor_xy=.5,  # Correlation between X and Y
-             reliability_x=.80,       # Measurement error for X
-             reliability_y=.80       # Measurement error for Y
+             reliability_x=1,       # Measurement error for X
+             reliability_y=1       # Measurement error for Y
              )
 
 
@@ -823,3 +823,93 @@ for (i in 1:length(nValues)) {
     }
 }
 results
+
+
+################################################################################
+## 2-Wave Simulation with True CL Paths
+################################################################################
+
+## Actual Simulation Values
+nValues <- c(10000)
+rValues <- c(.1,.3,.5,.7)
+ar_corValues <- c(.1, .3, .5, .7)
+reliabilities <- c(.7, 1)
+arValues <- c(.5, 1, 2)
+
+
+
+
+## Run Sim
+##
+loopRow <- 1
+results <- data.frame(ar_corValue = numeric(),
+                      r = numeric(),
+                      reliability = numeric(),
+                      AR_Var = numeric(),
+                      estimatex = numeric(),
+                      estimatey = numeric())
+for (i in 1:length(ar_corValues)) {
+    for (j in 1:length(rValues)) {
+        for (k in 1:length(reliabilities)) {
+            for (l in 1:length(arValues)) {
+                ar_corValue <- ar_corValues[i]
+#                nValue <- nValues[i]
+                rValue <- rValues[j]
+                rel <- reliabilities[k]
+                arValue <- arValues[l]
+                sims <- run_sim_clpm(waves = 2,
+                                     studyN=10000,      # N to generate
+                                     ri_x=1,     # Random intercept variance for X
+                                     ri_y=1,     # Random intercept variance for Y
+                                     cor_i=rValue,   # Correlation between intercepts
+                                     x=arValue,        # AR variance for X
+                                     y=arValue,        # AR variance for Y
+                                     stab_x=.5,  # Stability of X
+                                     stab_y=.5,  # Stability of Y
+                                     yx=.5,      # Cross lag (Y on X)
+                                     xy=.2,      # Cross lag (X on Y)
+                                     cor_xy=ar_corValue,  # Correlation between X and Y
+                                     reliability_x=rel,       # Measurement error for X
+                                     reliability_y=rel       # Measurement error for Y
+                                     )
+                results[loopRow,1] <- ar_corValue
+                results[loopRow,2] <- rValue
+                results[loopRow,3] <- rel
+                results[loopRow,4] <- arValue
+                results[loopRow,5] <- sims[[1]]
+                results[loopRow,6] <- sims[[3]]
+                loopRow <- loopRow+1
+            }
+        }
+    }
+}
+
+## Changes names for plot
+names(results) <- c("rAR", "rST","Reliability", "Autoregressive", "estimate_x","estimate_y")
+
+
+temp <- results %>%
+    filter(Reliability==1) %>%
+    select(-estimate_x, -Reliability) %>%
+    pivot_wider(names_from = rST, values_from = estimate_y)
+
+
+
+names(temp) <- c("AR r", "AR Ratio", "0.1", "0.5", "0.7", "0.9")
+
+papaja::apa_table(temp,
+                  midrules=c(3,6,9),
+                  align=rep("r", 10),
+                  col_spanners=list("Stable Trait Correlation"=c(3,6)),
+                  caption="Average Estimated Cross-Lagged Paths In Each Simulation Condition")
+
+
+temp2 <- results %>%
+    filter(Reliability==.7) %>%
+    select(-estimate_x, -Reliability) %>%
+    pivot_wider(names_from = rST, values_from = estimate_y)
+
+names(temp2) <- c("AR r", "AR Ratio", "0.1", "0.5", "0.7", "0.9")
+
+## scratch
+
