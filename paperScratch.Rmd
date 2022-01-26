@@ -1,0 +1,12 @@
+## Ambiguous nature
+
+The terms "within-person" and "between-person," however, are ambiguous. As @usami_within-person_2021 recently noted, these terms are used differently in different contexts. I posit that this ambiguity and inconsistent usage has led to incorrect interpretations of the RI-CLPM and its alternatives. 
+
+ Importantly, the specific reasons both authors provide for preferring the CLPM to the RI-CLPM follow directly from the incorrect version of their description. 
+ 
+ So when methodologists talk about separating "within" from "between," there are at least two possible meanings to this distinction. In the first [used by @curran_separation_2014; @hamaker_critique_2015, and others to describe models with a stable-trait component], "between-person" variance and effects refer to those that are perfectly stable over time, and "within-person" variance and effects include everything that is not perfectly stable. In the second meaning, "within-person" variance and effects are those that involve ipsatized scores from which all "between-person" variance (broadly defined) has been removed. These two meanings are not equivalent. 
+
+## The Source of Confusion
+
+
+Critics of the RI-CLPM appear to interpret the within/between distinction in the "ipsatizing" way, and they derive their concerns about the model from this interpretation. They explicitly state that their primary reason for avoiding the RI-CLPM is that it focuses so narrowly on within-person deviations from a person's "usual level". For instance, as previously noted, @ludtke_critique_2021 cautioned that "researchers should be aware that within-person effects are based on person-mean centered (i.e., ipsatized) scores that only capture temporary fluctuations around individual person means" which would be "less appropriate for understanding the potential effects of causes that explain differences between persons." But if the first part of that statement is incorrect, then the second would not follow. Similarly, all

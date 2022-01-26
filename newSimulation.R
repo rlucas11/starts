@@ -13,6 +13,7 @@ source("scripts/clpm5_c.R")
 source("scripts/gen_starts.R")
 source("scripts/clpm10_c.R")
 source("scripts/ri_clpm10_c.R")
+source("scripts/ri_clpm3_c.R")
 source("scripts/starts_c.R")
 source("scripts/run_sim.R")
 
@@ -913,3 +914,202 @@ names(temp2) <- c("AR r", "AR Ratio", "0.1", "0.5", "0.7", "0.9")
 
 ## scratch
 
+
+
+################################################################################
+## 2-wave simulation with real effects
+################################################################################
+
+## Test Simulation Values
+nValues <- c(250,1000)
+rValues <- c(.1,.3,.5,.7)
+reliabilities <- c(.5, .7, .9)
+arValues <- c(.5, 1, 2)
+clValues <- c(.1, .3, .5)
+
+
+
+## Actual Simulation Values
+nValues <- c(50,100,250,500,1000)
+rValues <- c(.1,.3,.5,.7)
+reliabilities <- c(.5, .7, .9)
+arValues <- c(.5, 1, 2)
+clValues <- c(.1, .3, .5)
+
+## Run Sim
+##
+set.seed(121)
+loopRow <- 1
+results <- data.frame(N = numeric(),
+                      r = numeric(),
+                      reliability = numeric(),
+                      AR_Var = numeric(),
+                      cl_Var = numeric(),
+                      powerx = numeric(),
+                      powery = numeric(),
+                      estimatex = numeric(),
+                      estimatey = numeric())
+for (i in 1:length(nValues)) {
+    for (j in 1:length(rValues)) {
+        for (k in 1:length(reliabilities)) {
+            for (l in 1:length(arValues)) {
+                for (m in 1:length(clValues)) {
+                    nValue <- nValues[i]
+                    rValue <- rValues[j]
+                    rel <- reliabilities[k]
+                    arValue <- arValues[l]
+                    clValue <- clValues[m]
+                    sims <- data.frame(t(mcreplicate(n=1000, run_sim_clpm(waves = 2,
+                                                                          studyN=nValue,      # N to generate
+                                                                          ri_x=1,     # Random intercept variance for X
+                                                                          ri_y=1,     # Random intercept variance for Y
+                                                                          cor_i=rValue,   # Correlation between intercepts
+                                                                          x=arValue,        # AR variance for X
+                                                                          y=arValue,        # AR variance for Y
+                                                                          stab_x=.5,  # Stability of X
+                                                                          stab_y=.5,  # Stability of Y
+                                                                          yx=clValue,      # Cross lag (Y on X)
+                                                                          xy=0,      # Cross lag (X on Y)
+                                                                          cor_xy=.5,  # Correlation between X and Y
+                                                                          reliability_x=rel,       # Measurement error for X
+                                                                          reliability_y=rel       # Measurement error for Y
+                                                                          ), mc.cores=14)))
+                    results[loopRow,1] <- nValue
+                    results[loopRow,2] <- rValue
+                    results[loopRow,3] <- rel
+                    results[loopRow,4] <- arValue
+                    results[loopRow,5] <- clValue
+                    results[loopRow,6] <- sum(sims$X2<.05)/1000
+                    results[loopRow,7] <- sum(sims$X4<.05)/1000
+                    results[loopRow,8] <- mean(sims$X1)
+                    results[loopRow,9] <- mean(sims$X3)
+                    loopRow <- loopRow+1
+                }
+            }
+        }
+    }
+}
+
+saveRDS(results, "saved/2WaveSimulationPower.rds")
+
+resultsCl <- readRDS("saved/2WaveSimulationPower.rds")
+## Changes names for plot
+names(resultsCl) <- c("N", "r","Reliability", "Autoregressive", "clValue", "powerx","powery", "estimatex","estimatey")
+## Create r labels for plot
+
+
+
+resultsCl %>%
+    filter(clValue==.3) %>%
+    ggplot(aes(x = N, y = powery, group = r)) +
+    geom_line(aes(linetype=as.factor(r)),color="black", size=.5) +
+    ##    scale_x_log10(breaks=c(25, 50,100,250,500,1000)) +
+    scale_x_continuous(breaks = c(25,50,100,250,500,1000)) +
+    facet_grid(cols = vars(Reliability),
+               rows = vars(Autoregressive),
+               labeller=label_both) +
+    ##    geom_text_repel(data=labels, aes(label=r), size=3) +
+    theme_bw() +
+    theme(legend.position="bottom", panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+    labs(linetype = "Correlation Between Stable Traits") +
+    ylab("Probability of One or More Significant Cross-Lagged Effects")
+
+
+resultsCl %>%
+    filter(clValue==.1) %>%
+    ggplot(aes(x = N, y = powery, group = r)) +
+    geom_line(aes(linetype=as.factor(r)),color="black", size=.5) +
+    ##    scale_x_log10(breaks=c(25, 50,100,250,500,1000)) +
+    scale_x_continuous(breaks = c(25,50,100,250,500,1000)) +
+    facet_grid(cols = vars(Reliability),
+               rows = vars(Autoregressive),
+               labeller=label_both) +
+    ##    geom_text_repel(data=labels, aes(label=r), size=3) +
+    theme_bw() +
+    theme(legend.position="bottom", panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+    labs(linetype = "Correlation Between Stable Traits") +
+    ylab("Probability of One or More Significant Cross-Lagged Effects")
+
+
+
+outs <- data.frame(t(mcreplicate(n=1000, run_sim_clpm(waves = 3,
+             studyN=250,      # N to generate
+             ri_x=1,     # Random intercept variance for X
+             ri_y=1,     # Random intercept variance for Y
+             cor_i=.5,   # Correlation between intercepts
+             x=1,        # AR variance for X
+             y=1,        # AR variance for Y
+             stab_x=.5,  # Stability of X
+             stab_y=.5,  # Stability of Y
+             yx=.1,      # Cross lag (Y on X)
+             xy=0,      # Cross lag (X on Y)
+             cor_xy=.5,  # Correlation between X and Y
+             reliability_x=1,       # Measurement error for X
+             reliability_y=1       # Measurement error for Y
+             ), mc.cores=14)))
+## 
+mean(outs$X1)
+mean(outs$X3)
+sum(outs$X2<.05)
+sum(outs$X4<.05)
+
+outscl <- data.frame(t(mcreplicate(n=1000, run_sim_clpm(waves = 10,
+             studyN=250,      # N to generate
+             ri_x=1,     # Random intercept variance for X
+             ri_y=1,     # Random intercept variance for Y
+             cor_i=.5,   # Correlation between intercepts
+             x=1,        # AR variance for X
+             y=1,        # AR variance for Y
+             stab_x=.5,  # Stability of X
+             stab_y=.5,  # Stability of Y
+             yx=.1,      # Cross lag (Y on X)
+             xy=0,      # Cross lag (X on Y)
+             cor_xy=.5,  # Correlation between X and Y
+             reliability_x=1,       # Measurement error for X
+             reliability_y=1       # Measurement error for Y
+             ), mc.cores=14)))
+## 
+mean(outscl$X1)
+mean(outscl$X3)
+sum(outscl$X2<.05)/1000
+sum(outscl$X4<.05)/1000
+
+
+outsri <- data.frame(t(mcreplicate(n=1000, run_sim_riclpm(waves = 10,
+             studyN=250,      # N to generate
+             ri_x=1,     # Random intercept variance for X
+             ri_y=1,     # Random intercept variance for Y
+             cor_i=.5,   # Correlation between intercepts
+             x=1,        # AR variance for X
+             y=1,        # AR variance for Y
+             stab_x=.5,  # Stability of X
+             stab_y=.5,  # Stability of Y
+             yx=.1,      # Cross lag (Y on X)
+             xy=0,      # Cross lag (X on Y)
+             cor_xy=.5,  # Correlation between X and Y
+             reliability_x=1,       # Measurement error for X
+             reliability_y=1       # Measurement error for Y
+             ), mc.cores=14)))
+## 
+mean(outsri$est)
+mean(outsri$est.1)
+sum(outsri$pvalue<.05, na.rm = TRUE)/(1000-sum(is.na(outsri$pvalue)))
+sum(outsri$pvalue.1<.05, na.rm = TRUE)/(1000-sum(is.na(outsri$pvalue.1)))
+
+
+
+temp <- run_sim_riclpm(waves = 3,
+             studyN=250,      # N to generate
+             ri_x=1,     # Random intercept variance for X
+             ri_y=1,     # Random intercept variance for Y
+             cor_i=.5,   # Correlation between intercepts
+             x=1,        # AR variance for X
+             y=1,        # AR variance for Y
+             stab_x=.5,  # Stability of X
+             stab_y=.5,  # Stability of Y
+             yx=.2,      # Cross lag (Y on X)
+             xy=0,      # Cross lag (X on Y)
+             cor_xy=.5,  # Correlation between X and Y
+             reliability_x=1,       # Measurement error for X
+             reliability_y=1       # Measurement error for Y
+             )

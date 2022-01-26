@@ -82,11 +82,19 @@ run_sim_riclpm <- function(waves=10,
                        yr=sy       
                        )
     ##
-    fit_riclpm <- lavaan(ri_clpm10_c, data = data)
-    output <- c(parameterEstimates(fit_riclpm)[59,5],
-                parameterEstimates(fit_riclpm)[59,8],
-                parameterEstimates(fit_riclpm)[68,5],
-                parameterEstimates(fit_riclpm)[68,8])
+    if (waves==10) {
+        riclpm <- ri_clpm10_c
+    } else if (waves==3) {
+        riclpm <- ri_clpm3_c
+    } else {
+        stop("No model defined for that many waves")
+    }
+    ##
+    fit_riclpm <- lavaan(riclpm, data = data)
+    output <- unlist(c(parameterEstimates(fit_riclpm) %>% filter(lhs=="wy2", op=="~", rhs=="wx1") %>% select(est),
+                parameterEstimates(fit_riclpm) %>% filter(lhs=="wy2", op=="~", rhs=="wx1") %>% select(pvalue),
+                parameterEstimates(fit_riclpm) %>% filter(lhs=="wx2", op=="~", rhs=="wy1") %>% select(est),
+                parameterEstimates(fit_riclpm) %>% filter(lhs=="wx2", op=="~", rhs=="wy1") %>% select(pvalue)))
     output
 }
 
