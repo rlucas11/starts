@@ -418,7 +418,7 @@ rValues <- c(.5)
 reliabilities <- c(.8)
 arValues <- c(1)
 
-## Run Sim
+n## Run Sim
 ##
 loopRow <- 1
 results_ri <- data.frame(N = numeric(),
