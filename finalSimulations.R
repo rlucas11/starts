@@ -567,6 +567,7 @@ resultsCl %>%
     labs(linetype = "Correlation Between Stable Traits") +
     ylab("Probability of One or More Significant Cross-Lagged Effects")
 
+ggsave("images/3WaveSimulation.clpm.power.cl1.png", width=6.5, height=8.5, units="in")
 
 ################################################################################
 ## 3-Wave RI-CLPM Simulation (with measurement error)
@@ -913,9 +914,9 @@ names(resultsClRi) <- c("N", "r","Reliability", "Autoregressive", "clValue", "po
 ## Create r labels for plot
 
 resultsClRi %>%
-    filter(clValue==.3) %>%
+    filter(clValue==.1) %>%
     ggplot(aes(x = N, y = powerx, group = r)) +
-    geom_line(aes(linetype=as.factor(r)),color="black", size=.5) +
+    geom_line(aes(linetype=as.factor(r)),color="black", size=.5) + expand_limits(y=c(0,1))+
     ##    scale_x_log10(breaks=c(25, 50,100,250,500,1000)) +
     scale_x_continuous(breaks = c(50,100,250,500,1000)) +
     facet_grid(cols = vars(Reliability),
@@ -926,6 +927,108 @@ resultsClRi %>%
     theme(legend.position="bottom", panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
     labs(linetype = "Correlation Between Stable Traits") +
     ylab("Probability of One or More Significant Cross-Lagged Effects")
+
+ggsave("images/3WaveSimulation.ri.power.cl1.png", width=6.5, height=8.5, units="in")
+
+resultsClRi %>%
+    filter(clValue==.1, Autoregressive==1, Reliability==.7, r==.1)
+
+resultsCl %>%
+    filter(clValue==.1, Autoregressive==1, Reliability==.7, r==.1)
+
+################################################################################
+## 3-wave RI-CLPM with true cl paths
+## Power
+## Vary AR Cor
+################################################################################
+
+## Actual Simulation Values
+nValues <- c(50,100,250,500,1000)
+rValues <- c(.1,.3,.5,.7)
+reliabilities <- c(.5, .7, .9)
+arValues <- c(.5, 1, 2)
+clValues <- c(.1, .2, .3)
+
+## Run Sim
+##
+#set.seed(121)
+loopRow <- 1
+results <- data.frame(N = numeric(),
+                      r = numeric(),
+                      reliability = numeric(),
+                      AR_Var = numeric(),
+                      cl_Var = numeric(),
+                      powerx = numeric(),
+                      powery = numeric(),
+                      estimatex = numeric(),
+                      estimatey = numeric(),
+                      problems = numeric())
+for (i in 1:length(nValues)) {
+    for (j in 1:length(rValues)) {
+        for (k in 1:length(reliabilities)) {
+            for (l in 1:length(arValues)) {
+                for (m in 1:length(clValues)) {
+                    nValue <- nValues[i]
+                    rValue <- rValues[j]
+                    rel <- reliabilities[k]
+                    arValue <- arValues[l]
+                    clValue <- clValues[m]
+                    sims <- data.frame(t(mcreplicate(n=1000, run_sim_riclpm(waves = 3,
+                                                                          studyN=nValue,      # N to generate
+                                                                          ri_x=1,     # Random intercept variance for X
+                                                                          ri_y=1,     # Random intercept variance for Y
+                                                                          cor_i=.3,   # Correlation between intercepts
+                                                                          x=arValue,        # AR variance for X
+                                                                          y=arValue,        # AR variance for Y
+                                                                          stab_x=.5,  # Stability of X
+                                                                          stab_y=.5,  # Stability of Y
+                                                                          yx=clValue,      # Cross lag (Y on X)
+                                                                          xy=0,      # Cross lag (X on Y)
+                                                                          cor_xy=rValue,  # Correlation between X and Y
+                                                                          reliability_x=rel,       # Measurement error for X
+                                                                          reliability_y=rel       # Measurement error for Y
+                                                                          ), mc.cores=14)))
+                    results[loopRow,1] <- nValue
+                    results[loopRow,2] <- rValue
+                    results[loopRow,3] <- rel
+                    results[loopRow,4] <- arValue
+                    results[loopRow,5] <- clValue
+                    results[loopRow,6] <- sum(sims$pvalue<.05, na.rm = TRUE)/(1000-sum(is.na(sims$pvalue)))
+                    results[loopRow,7] <- sum(sims$pvalue.1<.05, na.rm = TRUE)/(1000-sum(is.na(sims$pvalue.1)))
+                    results[loopRow,8] <- mean(sims$est, na.rm=TRUE)
+                    results[loopRow,9] <- mean(sims$est.1, na.rm=TRUE)
+                    results[loopRow,10] <- sum(is.na(sims$pvalue))
+                    loopRow <- loopRow+1
+                }
+            }
+        }
+    }
+}
+
+
+saveRDS(results, "saved/3WaveSimulationPowerRI.varyAR.rds")
+
+resultsClRi <- readRDS("saved/3WaveSimulationPowerRI.varyAR.rds")
+## Changes names for plot
+names(resultsClRi) <- c("N", "r","Reliability", "Autoregressive", "clValue", "powerx","powery", "estimatex","estimatey", "problems")
+## Create r labels for plot
+
+resultsClRi %>%
+    filter(clValue==.1) %>%
+    ggplot(aes(x = N, y = powerx, group = r)) +
+    geom_line(aes(linetype=as.factor(r)),color="black", size=.5) + expand_limits(y=c(0,1))+
+    ##    scale_x_log10(breaks=c(25, 50,100,250,500,1000)) +
+    scale_x_continuous(breaks = c(50,100,250,500,1000)) +
+    facet_grid(cols = vars(Reliability),
+               rows = vars(Autoregressive),
+               labeller=label_both) +
+    ##    geom_text_repel(data=labels, aes(label=r), size=3) +
+    theme_bw() +
+    theme(legend.position="bottom", panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+    labs(linetype = "Correlation Between Stable Traits") +
+    ylab("Probability of One or More Significant Cross-Lagged Effects")
+
+ggsave("images/3WaveSimulation.ri.power.cl1.png", width=6.5, height=8.5, units="in")
 
 resultsClRi %>%
     filter(clValue==.1, Autoregressive==1, Reliability==.7, r==.1)
