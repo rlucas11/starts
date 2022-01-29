@@ -620,15 +620,15 @@ wx10 ~~ wx10
 
 
 n=10000      # N to generate
-nwaves=10   # Number of waves
+nwaves=2   # Number of waves
 ri_x=1   # Random intercept variance for X
 ri_y=1     # Random intercept variance for Y
-cor_i=.5   # Correlation between intercepts
-x=1        # AR variance for X
-y=1        # AR variance for Y
+cor_i=.7   # Correlation between intercepts
+x=0        # AR variance for X
+y=0        # AR variance for Y
 stab_x=.5  # Stability of X
 stab_y=.5  # Stability of Y
-yx=.5      # Cross lag (Y on X)
+yx=0      # Cross lag (Y on X)
 xy=0      # Cross lag (X on Y)
 cor_xy=.5  # Correlation between X and Y
 #cor_xyr=.2 # Correlation between X and Y residuals
@@ -685,3 +685,9 @@ names(resultsCl)
 
 resultsCl %>%
     filter(Reliability==.7, Autoregressive==1,r==.1, clValue==.3)
+
+temp <- lavaan(clpm2_c, data=data)
+summary(temp)
+
+temp2 <- lavaan(clpm10_c, data=data)
+summary(temp2)

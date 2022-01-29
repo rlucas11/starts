@@ -1008,13 +1008,13 @@ for (i in 1:length(nValues)) {
 
 saveRDS(results, "saved/3WaveSimulationPowerRI.varyAR.rds")
 
-resultsClRi <- readRDS("saved/3WaveSimulationPowerRI.varyAR.rds")
+resultsRiVaryAR <- readRDS("saved/3WaveSimulationPowerRI.varyAR.rds")
 ## Changes names for plot
-names(resultsClRi) <- c("N", "r","Reliability", "Autoregressive", "clValue", "powerx","powery", "estimatex","estimatey", "problems")
-## Create r labels for plot
+names(resultsRiVaryAR) <- c("N", "r","Reliability", "Autoregressive", "clValue", "powerx","powery", "estimatex","estimatey", "problems")
 
-resultsClRi %>%
-    filter(clValue==.1) %>%
+
+resultsRiVaryAR %>%
+    filter(clValue==.3) %>%
     ggplot(aes(x = N, y = powerx, group = r)) +
     geom_line(aes(linetype=as.factor(r)),color="black", size=.5) + expand_limits(y=c(0,1))+
     ##    scale_x_log10(breaks=c(25, 50,100,250,500,1000)) +
@@ -1030,8 +1030,8 @@ resultsClRi %>%
 
 ggsave("images/3WaveSimulation.ri.power.cl1.png", width=6.5, height=8.5, units="in")
 
-resultsClRi %>%
-    filter(clValue==.1, Autoregressive==1, Reliability==.7, r==.1)
+resultsRiVaryAR %>%
+    filter(clValue==.2, Autoregressive==1, Reliability==.7, r==.5)
 
 resultsCl %>%
     filter(clValue==.1, Autoregressive==1, Reliability==.7, r==.1)
