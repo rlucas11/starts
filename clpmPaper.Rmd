@@ -13,7 +13,7 @@ affiliation:
 
 
 abstract: |
-  The cross-lagged panel model (CLPM) is a widely used technique for examining reciprocal causal processes using longitudinal data. Critics of the CLPM have noted that it fails to separate within-person effects from between-person associations, and models that incorporate stable-trait components (such as the random intercept cross-lagged panel model; RI-CLPM) have become a popular alternative. Debates about the merits of the CLPM have continued, however, with some researchers arguing that the CLPM is more appropriate than modern alternatives for examining common psychological questions. In this paper, I argue that these defenses of the CLPM fail to acknowledge widely discussed problems with the interpretation of analyses of multilevel data. I then show in simulated data that the CLPM is very likely to find spurious cross-lagged effects when they don't exist, while also underestimating them when they do. These simulations also highlight some limitations of the RI-CLPM itself, which highlight the benefits of more complex models like the STARTS. I argue that there are no situations where the CLPM is preferable to alternatives that incorporate information about stable traits. 
+  The cross-lagged panel model (CLPM) is a widely used technique for examining reciprocal causal processes using longitudinal data. Critics of the CLPM have noted that it fails to separate within-person effects from between-person associations, and models that incorporate stable-trait components (such as the random intercept cross-lagged panel model; RI-CLPM) have become a popular alternative. Debates about the merits of the CLPM have continued, however, with some researchers arguing that the CLPM is more appropriate than modern alternatives for examining common psychological questions. In this paper, I argue that these defenses of the CLPM fail to acknowledge widely discussed problems with the interpretation of analyses of multilevel data. I then show in simulated data that the CLPM is very likely to find spurious cross-lagged effects when they don't exist, while also underestimating them when they do. These simulations also highlight some limitations of the RI-CLPM itself, which highlight the benefits of more complex models. I argue that there are no situations where the CLPM is preferable to alternatives that incorporate information about stable traits (though there are, of course, research questions for which neither the CLPM nor alternatives that incorporate a stable trait are appropriate). 
   
   
 keywords: "cross-lagged panel model, longitudinal, structural equation modeling"
@@ -45,28 +45,31 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+## Load packages
 library(lavaan)
 library(tidyverse)
 library(knitr)
-library(DiagrammeR)
 library(rethinking)
-#library(lavaanPlot)
 
+## Load scripts and models
 source("scripts/gen_starts.R") ## Generate data
 source("scripts/clpm2_c.R") ## Lavaan model for 2-wave clpm with constraints
+source("scripts/clpm3_c.R") ## Lavaan model for 3-wave clpm with constraints
 source("scripts/clpm5_c.R") ## Lavaan model for 5-wave clpm with constraints
 source("scripts/clpm10_c.R") ## Lavaan model for 10-wave clpm with constraints
+source("scripts/ri_clpm3_c.R") ## Lavaan model for 3-wave ri-clpm with constraints
 source("scripts/ri_clpm10_c.R") ## Lavaan model for 10-wave ri-clpm with constraints
 source("scripts/starts_c.R") ## Lavaan model for 10-wave starts with constraints
 source("scripts/run_sim.R") ## Script to run simulations
 
+## Set options
 options(knitr.kable.NA='')
 
 ```
 
 The cross-lagged panel model (CLPM) is a widely used technique for examining causal processes using longitudinal data. With at least two waves of data, it is possible to estimate the association between a predictor at Time 1 and an outcome at Time 2, controlling for a measure of the outcome at Time 1. With some assumptions, this association can be interpreted as a causal effect of the predictor on the outcome. The simplicity of the model along with its limited data requirements have made the CLPM a popular choice for the analysis of longitudinal data. For instance, a search of Google Scholar for "cross lagged panel model" resulted in over 1,000 papers in just the last year[^scholar].
 
-[^scholar]: Of course, at least some of these papers describe but do not use the CLPM or even critique it.
+[^scholar]: Of course, at least some of these papers may describe but not use the CLPM.
 
 The CLPM improves on simpler cross-sectional analyses by controlling for contemporaneous associations between the predictor and outcome. Presumably, confounding factors should be reflected in this initial association, which would mean that any additional cross-lagged associations between the Time 1 predictor and the Time 2 outcome would reflect a causal effect of the former on the latter (again, with some assumptions).  @hamaker_critique_2015 pointed out, however, that the CLPM does not adequately account for stable-trait-level confounds, and they proposed the random-intercept cross-lagged panel model (RI-CLPM) as an alternative [also see @allison2009fixed; @berry_practical_2017]. The RI-CLPM includes stable-trait variance components that reflect variance in the predictor and outcome that is stable across waves. Hamaker et al. showed that failure to account for these random intercepts and the associations between them can lead to incorrect conclusions about cross-lagged paths. They described the RI-CLPM as a multilevel model that separates between-person effects from within-person effects. As others have noted [e.g., @ludtke_critique_2021; @usami_differences_2020], this critique of the cross-lagged panel model has already been cited frequently and has had an important impact on researchers who use longitudinal data.
 
@@ -142,12 +145,14 @@ The proportion of simulations that resulted in at least one significant cross-la
 
 results2 <- readRDS("saved/2WaveSimulation.rds")
 ## Changes names for plot
-names(results2) <- c("N", "r","Reliability", "Autoregressive", "power", "estimatex","estimatey")
-results2$`Ratio AR Variance` <- factor(paste0((results2$Autoregressive*100),"%"), levels = c("0%", "50%", "100%", "200%"))
+names(results2) <- c("N", "r","Reliability", "Ratio AR Variance", "power", "estimatex","estimatey")
+##results2$`Ratio AR Variance` <- factor(paste0((results2$Autoregressive*100),"%"), levels = c("0%", "50%", "100%", "200%"))
 
-p2 <- ggplot(data = results2, aes(x = N, y = power, group = r)) +
+results2 %>%
+    filter(N>25) %>%
+    ggplot(aes(x = N, y = power, group = r)) +
     geom_line(aes(linetype=as.factor(r)),color="black", size=.5) +
-    scale_x_continuous(breaks = c(25,50,100,250,500,1000), labels = c("25", "", "100","250","500","1000")) +
+    scale_x_continuous(breaks = c(50,100,250,500,1000), labels = c("50","100","250","500","1000")) +
     facet_grid(cols = vars(Reliability),
                rows = vars(`Ratio AR Variance`),
                labeller=label_both) +
@@ -158,8 +163,8 @@ p2 <- ggplot(data = results2, aes(x = N, y = power, group = r)) +
           panel.grid.minor = element_blank()) +
     geom_hline(aes(yintercept=.0975), color="gray") +
     labs(linetype = "Correlation Between Stable Traits") +
-    ylab("Probability of One or More Significant Cross-Lagged Effects")
-p2
+    ylab("Probability of One or More Significant Spurious Cross-Lagged Effects")
+
 
 ```
 
@@ -213,7 +218,7 @@ One might argue that a model that just includes stable-trait variance and error 
 
 ```{r measurementError, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
-## Actual Simulation Values
+## Simulation Values
 nValues <- c(500)
 rValues <- c(0)
 reliabilities <- c(.8)
@@ -335,19 +340,23 @@ To examine this issue more systematically and to compare the likelihood of findi
 
 results <- readRDS("saved/riSimulation3_rAr.rds")
 ## Changes names for plot
-names(results) <- c("N", "r","Reliability", "Autoregressive", "power", "estimatex","estimatey", "problems")
+names(results) <- c("N", "r","Reliability", "Ratio AR Variance", "power", "estimatex","estimatey", "problems")
 
 ggplot(data = results, aes(x = N, y = power, group = r)) +
     geom_line(aes(linetype=as.factor(r)),color="black", size=.5) +
     scale_x_continuous(breaks = c(50,100,250,500,1000)) + expand_limits(y=c(0,1)) +
     facet_grid(cols = vars(Reliability),
-               rows = vars(Autoregressive),
+               rows = vars(`Ratio AR Variance`),
                labeller=label_both) +
     ## ##    geom_text_repel(data=labels, aes(label=r), size=3) +
     theme_bw() +
-    theme(legend.position="bottom", panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+    theme(legend.position="bottom",
+          axis.text.x = element_text(angle=90, vjust = .5),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+    geom_hline(aes(yintercept=.0975), color="gray") +
     labs(linetype = "Correlation Between AR Traits") +
-    ylab("Probability of One or More Spurious Cross-Lagged Effects")
+    ylab("Probability of One or More Significant Spurious Cross-Lagged Effects")
 
 ```
 
@@ -363,12 +372,14 @@ Although the CLPM is often used with just two waves of assessment, it can also b
 
 results5 <- readRDS("saved/5WaveSimulation.rds")
 ## Changes names for plot
-names(results5) <- c("N", "r","Reliability", "Autoregressive", "power", "estimatex","estimatey")
-results5$`Ratio AR Variance` <- factor(paste0((results5$`Autoregressive`*100),"%"), levels = c("0%", "50%", "100%", "200%"))
+names(results5) <- c("N", "r","Reliability", "Ratio AR Variance", "power", "estimatex","estimatey")
+## results5$`Ratio AR Variance` <- factor(paste0((results5$`Autoregressive`*100),"%"), levels = c("0%", "50%", "100%", "200%"))
 
-p5 <- ggplot(data = results5, aes(x = N, y = power, group = r)) +
+results5 %>%
+    filter(N>25) %>%
+    ggplot(aes(x = N, y = power, group = r)) +
     geom_line(aes(linetype=as.factor(r)),color="black", size=.5) +
-    scale_x_continuous(breaks = c(25,50,100,250,500,1000), labels = c("25", "", "100","250","500","1000")) +
+    scale_x_continuous(breaks = c(50,100,250,500,1000), labels = c("50", "100","250","500","1000")) +
     facet_grid(cols = vars(Reliability),
                rows = vars(`Ratio AR Variance`),
                labeller=label_both) +
@@ -380,7 +391,7 @@ p5 <- ggplot(data = results5, aes(x = N, y = power, group = r)) +
     geom_hline(aes(yintercept=.0975), color="gray") +
     labs(linetype = "Correlation Between Stable Traits") +
     ylab("Probability of One or More Significant Cross-Lagged Effects")
-p5
+
 
 
 ```
