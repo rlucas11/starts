@@ -1,7 +1,9 @@
 ################################################################################
 ## Function to generate STARTS/CLPM/RI-CLPM Data
 ################################################################################
-
+##
+## Credits:
+##
 ## Some of the initial guidance for simulating the data was taken from here:
 ## https://bookdown.org/marklhc/notes/simulation-example-on-structural-equation-modeling-sem.html
 ##
@@ -11,7 +13,7 @@
 library(mnormt)
 
 gen_starts <- function(n=500,      # N to generate
-                       nwaves=5,   # Number of waves
+                       nwaves=10,   # Number of waves
                        ri_x=1,     # Random intercept variance for X
                        ri_y=1,     # Random intercept variance for Y
                        cor_i=.5,   # Correlation between intercepts (as correlation)
