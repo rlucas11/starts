@@ -10,6 +10,7 @@
 library(shiny)
 library(lavaan)
 library(DiagrammeR)
+library(shinybusy)
 #library(knitr)
 
 source("scripts/gen_starts.R")
@@ -23,6 +24,7 @@ ui <- fluidPage(
 
     # Application title
     titlePanel("Generating and Modeling CLPM/RI-CLPM/STARTS Data"),
+    use_busy_spinner(spin="fading-circle"),
     
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
@@ -69,32 +71,32 @@ ui <- fluidPage(
                                        value = 1))),
             h3("Autoregressive Parameters"),
             fluidRow(
-                column(6, numericInput("stability_x",
+                column(4, numericInput("stability_x",
                                        "Stability of X",
                                        min = 0,
                                        max = 1,
                                        step = .05,
                                        value = .5)),
-                column(6, numericInput("stability_y",
+                column(4, numericInput("stability_y",
                                        "Stability of Y",
                                        min = 0,
                                        max = 1,
                                        step = .05,
                                        value = .5))),
             fluidRow(
-                column(6, numericInput("YonX",
-                                       "Cross-lag: Y regressed on X:",
+                column(4, numericInput("XonY",
+                                       "Cross-lag: Y Predicting X",
                                        min = 0,
                                        max = 1,
                                        step = .05,
                                        value = .2)),
-                column(6, numericInput("XonY",
-                                       "Cross-lag: X regressed on Y:",
+                column(4, numericInput("YonX",
+                                       "Cross-lag: X Predicting Y",
                                        min = 0,
                                        max = 1,
                                        step = .05,
                                        value = .2))),
-            h3("Correlations"),
+;            h3("Correlations"),
             fluidRow(
                 column(4, numericInput("st_cor",
                                        "Correlation Between Stable Traits:",
@@ -244,8 +246,8 @@ server <- function(input, output) {
     clpm_table <- parameterEstimates(fit_clpm)[c(1,2,3,4,37,38,57),c(5:10)]
     rownames(clpm_table) <- c("Stability of X",
                               "Stability of Y",
-                              "X Predicted by Y",
-                              "Y Predicted by X",
+                              "Y Predicting X",
+                              "X Predicting Y",
                               "Variance of X",
                               "Variance of Y",
                               "Correlation Between X and Y")
@@ -254,8 +256,8 @@ server <- function(input, output) {
     riclpm_table <- parameterEstimates(fit_riclpm)[c(41,50,68,59,77,78,79,80,99,100),c(5:10)]
     rownames(riclpm_table) <- c("Stability of X",
                               "Stability of Y",
-                              "X Predicted by Y",
-                              "Y Predicted by X",
+                              "Y Predicting X",
+                              "X Predicting Y",
                               "Variance of X Random Intercept",
                               "Variance of Y Random Intercept",
                               "Variance of Autoregressive X",
@@ -266,12 +268,14 @@ server <- function(input, output) {
 
     
     if (input$run_starts==TRUE) {
+        show_spinner()
         fit_starts <- lavaan(starts_c, data = data)
+        hide_spinner()
         starts_table <- parameterEstimates(fit_starts)[c(41,50,68,59,77,78,79,80,99,109,119,120,121),c(5:10)]
         rownames(starts_table) <- c("Stability of X",
                                     "Stability of Y",
-                                    "X on Y",
-                                    "Y on X",
+                                    "Y Predicting X",
+                                    "X Predicting Y",
                                     "Variance of X Random Intercept",
                                     "Variance of Y Random Intercept",
                                     "Variance of Autoregressive X",
