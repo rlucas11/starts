@@ -7,7 +7,7 @@ summarizeR <- function(corMat, nvars) {
         for (i in 1:((nrow(corMat)/nvars)-1)) {
             sumR <- 0
             for (j in seq(1, (nrow(corMat)-nvars*i), by=nvars)) {
-                sumR <- sumR + corMat[(i+(k-1)+j), j+(k-1)]
+                sumR <- sumR + corMat[(j+(i*nvars)+(k-1)), j+(k-1)]
             }
             averageRs[i,k] <- sumR/((nrow(corMat)/nvars)-i)
         }
@@ -15,13 +15,15 @@ summarizeR <- function(corMat, nvars) {
     print(averageRs)
 }
 
-corMat <- matrix(c(1, .5, .25,
-                   .5, 1, .25,
-                   .25, .5, 1),
-                 nrow=3,
-                 ncol=3,
-                 byrow=TRUE)
 
-summarizeR(corMat, nvars = 1)
+plotCors <- function(cors) {
+    cors <- cors %>%
+        mutate(lag=row_number()) %>%
+        pivot_longer(cols=starts_with("V"))
+
+    ggplot(aes(x=lag, y=value, group=name, color=name), data=cors) +
+        geom_smooth(method="loess", se=FALSE, span=.4)
+}
+
 
 
