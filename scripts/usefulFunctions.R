@@ -22,7 +22,8 @@ plotCors <- function(cors) {
         pivot_longer(cols=starts_with("V"))
 
     ggplot(aes(x=lag, y=value, group=name, color=name), data=cors) +
-        geom_smooth(method="loess", se=FALSE, span=.4)
+        geom_smooth(method="loess", se=FALSE, span=.4) +
+        ylim(0, 1)
 }
 
 
