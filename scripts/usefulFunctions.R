@@ -1,4 +1,4 @@
-summarizeR <- function(corMat, nvars) {
+summarizeR <- function(corMat, nvars=1) {
 
     averageRs <- matrix(nrow=(nrow(corMat)/nvars-1),
                         ncol=nvars)
@@ -17,6 +17,7 @@ summarizeR <- function(corMat, nvars) {
 
 
 plotCors <- function(cors) {
+    cors <- as.data.frame(cors)
     cors <- cors %>%
         mutate(lag=row_number()) %>%
         pivot_longer(cols=starts_with("V"))
