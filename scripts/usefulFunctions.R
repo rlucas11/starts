@@ -6,10 +6,19 @@ summarizeR <- function(corMat, nvars=1) {
     for (k in 1:nvars) {
         for (i in 1:((nrow(corMat)/nvars)-1)) {
             sumR <- 0
+            nValid <- 0
             for (j in seq(1, (nrow(corMat)-nvars*i), by=nvars)) {
-                sumR <- sumR + corMat[(j+(i*nvars)+(k-1)), j+(k-1)]
+                if(!is.na(corMat[(j+(i*nvars)+(k-1)), j+(k-1)])) {
+                    sumR <- sumR + corMat[(j+(i*nvars)+(k-1)), j+(k-1)]
+                    nValid <- nValid + 1
+                    print(j)
+                    print(nValid)
+                    print(corMat[(j+(i*nvars)+(k-1)), j+(k-1)])
+                    print(sumR)
+                }
+                
             }
-            averageRs[i,k] <- sumR/((nrow(corMat)/nvars)-i)
+            averageRs[i,k] <- sumR/(nValid)
         }
     }
     print(averageRs)
