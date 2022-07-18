@@ -11,10 +11,6 @@ summarizeR <- function(corMat, nvars=1) {
                 if(!is.na(corMat[(j+(i*nvars)+(k-1)), j+(k-1)])) {
                     sumR <- sumR + corMat[(j+(i*nvars)+(k-1)), j+(k-1)]
                     nValid <- nValid + 1
-                    print(j)
-                    print(nValid)
-                    print(corMat[(j+(i*nvars)+(k-1)), j+(k-1)])
-                    print(sumR)
                 }
                 
             }
@@ -36,5 +32,13 @@ plotCors <- function(cors) {
         ylim(0, 1)
 }
 
+
+arCor <- function(waves, a) {
+  cors <- matrix(nrow = (waves - 1), ncol = 1)
+  for (i in 1:(waves - 1)) {
+    cors[i, 1] <- a^i
+  }
+  return(cors)
+}
 
 

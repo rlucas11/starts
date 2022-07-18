@@ -404,3 +404,24 @@ decompTable <- as.data.frame(decompTable)
 names(decompTable) <- c("Variable", "Stable Trait", "Autoregressive Trait", "State")
 
 write_csv(decompTable, "saved/hildaDecompTable.csv")
+decompTable <- read_csv("saved/hildaDecompTable.csv")
+
+
+### scratch
+
+arModel <- buildAr(2001:2020, "ls")
+temp <- lavaan(arModel, data = lsWide)
+
+summarizeR(starts_uni_cov(20, .36, .297, .344, .856))
+
+m <- matrix(NA, 20, 20)
+m[lower.tri(m, diag = TRUE)] <- fitted(temp)$cov
+
+
+commuteArModel <- buildAr(2002:2020, "commute")
+commuteAr <- lavaan(commuteArModel, data = commuteWideLog)
+
+summarizeR(cor(commuteWideLog[, -1], use = "pair"))
+summarizeR(starts_uni_cov(19, .138, .617, .245, .883))
+summarizeR(cov2cor(fitted(commuteAr)$cov))
+
