@@ -409,6 +409,8 @@ decompTable <- read_csv("saved/hildaDecompTable.csv")
 
 ### scratch
 
+source("scripts/buildAr.lavaan.R")
+
 arModel <- buildAr(2001:2020, "ls")
 temp <- lavaan(arModel, data = lsWide)
 
@@ -425,3 +427,10 @@ summarizeR(cor(commuteWideLog[, -1], use = "pair"))
 summarizeR(starts_uni_cov(19, .138, .617, .245, .883))
 summarizeR(cov2cor(fitted(commuteAr)$cov))
 
+weightArModel <- buildAr(2006:2020, "weight")
+weightAr <- lavaan(weightArModel, data = weightWide)
+summary(weightAr)
+
+summarizeR(cor(weightWide[, -1], use = "pair"))
+summarizeR(starts_uni_cov(15, .579, .393, .028, .950))
+summarizeR(cov2cor(fitted(weightAr)$cov))
