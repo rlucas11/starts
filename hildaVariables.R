@@ -160,12 +160,29 @@ weightWide <- weight %>%
 ################################################################################
 
 if(!file.exists("data/ss.csv")) {
-    ss_list=c("lssuppv","lssupnh","lssuplf","lssupac","lssuplt","lssupcd","lssupvl","lssuppi","lssuptp","lssupsh")
+  ss_list=c("lssuppv",
+            "lssupnh",
+            "lssuplf",
+            "lssupac",
+            "lssuplt",
+            "lssupcd",
+            "lssupvl",
+            "lssuppi",
+            "lssuptp",
+            "lssupsh")
     ss <- extractHildaMultiple(ss_list, ss_list, waves=letters[1:20])
     ss <- ss %>%
         mutate_at(ss_list, ~ replace(., .<0, NA))
-    ssKeys <- list(ss = c("-lssuppv", "-lssupnh", "lssuplf", "-lssupac", "-lssuplt", "lssupcd",
-                          "-lssupvl", "lssuppi", "lssuptp", "lssupsh"))
+  ssKeys <- list(ss = c("-lssuppv",
+                        "-lssupnh",
+                        "lssuplf",
+                        "-lssupac",
+                        "-lssuplt",
+                        "lssupcd",
+                        "-lssupvl",
+                        "lssuppi",
+                        "lssuptp",
+                        "lssupsh"))
     scaleScores <- scoreItems(ssKeys, ss, impute="none")
     ss$ss <- scaleScores$scores
     ss$year <- as.integer(ss$year)
@@ -376,7 +393,7 @@ ss <- read_csv("data/ss.csv")
 ssWide <- ss %>%
     pivot_wider(names_from = year, names_prefix = "ss", values_from = ss)
 ssStarts <- starts_uni_estimate(ssWide[, c(2:21)])
-
+summary(ssStarts)
 
 #### General Health
 genHealth <- read_csv("data/genHealth.csv")
@@ -434,3 +451,26 @@ summary(weightAr)
 summarizeR(cor(weightWide[, -1], use = "pair"))
 summarizeR(starts_uni_cov(15, .579, .393, .028, .950))
 summarizeR(cov2cor(fitted(weightAr)$cov))
+
+ssArModel <- buildAr(2001:2020, "ss")
+ssAr <- lavaan(ssArModel, data = ssWide)
+summary(ssAr)
+
+summarizeR(cor(ssWide[, -1], use = "pair"))
+summarizeR(starts_uni_cov(20, .405, .307, .288, .900))
+summarizeR(cov2cor(fitted(ssAr)$cov))
+           
+
+source("scripts/gen_ar2.R")
+
+
+tempData <- gen_ar2(stab_x2 = 0)
+tempModel <- buildAr(1:20, "x")
+tempFit <- lavaan(tempModel, data = tempData)
+round(summarizeR(cov2cor(fitted(tempFit)$cov)), 2)
+
+tempData2 <- gen_ar2(stab_x2 = 0)
+summarizeR(cor(tempData2))
+tempModel2 <- buildAr2(1:20, "x")
+tempFit2 <- lavaan(tempModel2, data = tempData2)
+summarizeR(cov2cor(fitted(tempFit2)$cov))

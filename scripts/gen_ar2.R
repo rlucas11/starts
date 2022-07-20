@@ -1,10 +1,11 @@
-## Testing
-n <- 10000
-nwaves <- 20
-stab_x1 <- .5
-stab_x2 <- .25
-xr <- 0
+## ## Testing
+## n <- 10000
+## nwaves <- 20
+## stab_x1 <- .5
+## stab_x2 <- .25
+## xr <- 0
 
+library(mnormt)
 gen_ar2 <- function(n=10000,
                      nwaves=20,
                      stab_x1=.5,
@@ -90,12 +91,12 @@ avg_cor <- function(cor_mat) {
 }
 
 
-arData <- gen_ar2(stab_x1=.6, stab_x2=.3)
-arDataS <- arData[,5:20]
-arAvgCor <- avg_cor(cor(arDataS))
-arAvgCor
+## arData <- gen_ar2(stab_x1=.6, stab_x2=.3)
+## arDataS <- arData[,5:20]
+## arAvgCor <- avg_cor(cor(arDataS))
+## arAvgCor
 
 
-stData <- gen_starts(n=10000, nwaves = 15, ri_x = 1, cor_i=0, x=1, stab_x=.5, yx=0, xy=0)
-stDataS <- stData[,1:15]
-stAvgCor <- avg_cor(cor(stDataS))
+## stData <- gen_starts(n=10000, nwaves = 15, ri_x = 1, cor_i=0, x=1, stab_x=.5, yx=0, xy=0)
+## stDataS <- stData[,1:15]
+## stAvgCor <- avg_cor(cor(stDataS))
