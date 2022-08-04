@@ -315,6 +315,7 @@ commuteStarts <- starts_uni_estimate(commuteWideLog[, c(2:20)])
 summary(commuteStarts)
 
 #### income (household level)
+income <- read_csv("data/income.csv")
 incHWide <- income %>%
     mutate(logInc = log(income+1)) %>%
     select(xwaveid, hhid, year, logInc) %>%
@@ -404,21 +405,21 @@ genHealthWide <- genHealth %>%
 genHealthStarts <- starts_uni_estimate(genHealthWide[, c(2:21)])
 
 
-decompTable <- matrix(nrow = 10, ncol = 4)
-decompTable[1, ] <- c("Life Satisfaction", lsStarts$var_prop$est)
-decompTable[2, ] <- c("Social Support", ssStarts$var_prop$est)
-decompTable[3, ] <- c("General Health", genHealthStarts$var_prop$est)
-decompTable[4, ] <- c("SF-36 Pain", sf36PainStarts$var_prop$est)
-decompTable[5, ] <- c("Weight", weightStarts$var_prop$est)
-decompTable[6, ] <- c("Physical Activity", physicalStarts$var_prop$est)
-decompTable[7, ] <- c("Pressed for Time", rushedStarts$var_prop$est)
-decompTable[8, ] <- c("Household Income", incStartsH$var_prop$est)
-decompTable[9, ] <- c("Household Wages", wageStartsH$var_prop$est)
-decompTable[10, ] <- c("Minutes Commuting", commuteStarts$var_prop$est)
+decompTable <- matrix(nrow = 10, ncol = 5)
+decompTable[1, ] <- c("Life Satisfaction", lsStarts$var_prop$est, lsStarts$coef[["a"]])
+decompTable[2, ] <- c("Social Support", ssStarts$var_prop$est, ssStarts$coef[["a"]])
+decompTable[3, ] <- c("General Health", genHealthStarts$var_prop$est, genHealthStarts$coef[["a"]])
+decompTable[4, ] <- c("SF-36 Pain", sf36PainStarts$var_prop$est, sf36PainStarts$coef[["a"]])
+decompTable[5, ] <- c("Weight", weightStarts$var_prop$est, weightStarts$coef[["a"]])
+decompTable[6, ] <- c("Physical Activity", physicalStarts$var_prop$est, physicalStarts$coef[["a"]])
+decompTable[7, ] <- c("Pressed for Time", rushedStarts$var_prop$est, rushedStarts$coef[["a"]])
+decompTable[8, ] <- c("Household Income", incStartsH$var_prop$est, incStartsH$coef[["a"]])
+decompTable[9, ] <- c("Household Wages", wageStartsH$var_prop$est, wageStartsH$coef[["a"]])
+decompTable[10, ] <- c("Minutes Commuting", commuteStarts$var_prop$est, commuteStarts$coef[["a"]])
 
 
 decompTable <- as.data.frame(decompTable)
-names(decompTable) <- c("Variable", "Stable Trait", "Autoregressive Trait", "State")
+names(decompTable) <- c("Variable", "Stable Trait", "Autoregressive Trait", "State", "Stability")
 
 write_csv(decompTable, "saved/hildaDecompTable.csv")
 decompTable <- read_csv("saved/hildaDecompTable.csv")
