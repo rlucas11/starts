@@ -162,7 +162,7 @@
 
   \node [latentTrait] (rihealth) at (-.5,11.5)                        {X Stable Trait};
   \node [observed] (rit1) at (-4.5,9.5)                        {$X_1$}
-  edge [pre] node[constraints] {} (rihealth);
+  edge [pre] node[constraints] {1} (rihealth);
 
   % \node [state] (ris1) [right of=rit1] {$S_{X_1}$}
   % edge [post] node[constraints] {1} (rit1);
@@ -171,7 +171,7 @@
   edge [post] node[constraintsl] {1} (rit1);
   
   \node [observed,hspace] (rit2) [right of=rit1]                         {$X_2$}
-  edge [pre] node[constraints] {} (rihealth) ;
+  edge [pre] node[constraints] {1} (rihealth) ;
 
   % \node [state] (ris2) [right of=rit2] {$S_{X_2}$}
   % edge [post] node[constraints] {1} (rit2);
@@ -181,7 +181,7 @@
   edge [pre] (rie1);
   
   \node [observed, hspace] (rit3) [right of=rit2]                         {$X_3$}
-  edge [pre] node[constraints] {} (rihealth);
+  edge [pre] node[constraints] {1} (rihealth);
 
   % \node [state] (ris3) [right of=rit3] {$S_{X_3}$}
   % edge [post] node[constraints] {1} (rit3);
@@ -191,7 +191,7 @@
   edge [pre] (rie2);
   
   \node [observed, hspace] (rit4) [right of=rit3]                         {$X_4$}
-  edge [pre] node[constraints] {} (rihealth);
+  edge [pre] node[constraints] {1} (rihealth);
 
   % \node [state] (ris4) [right of=rit4] {$S_{X_4}$}
   % edge [post] node[constraints] {1} (rit4);
@@ -204,7 +204,7 @@
   % SWB
   \node [latentTrait] (riSWB) [below of=rihealth, node distance = 8cm]         {Y Stable Trait};
   \node [observed, vspace] (rit1s) [below of=rit1] {$Y_1$}
-  edge [pre] node[constraintsb] {} (riSWB);
+  edge [pre] node[constraintsb] {1} (riSWB);
   
   % \node [state] (risy1) [right of=rit1s] {$S_{Y_1}$}
   % edge [post] node[constraints] {1} (rit1s);
@@ -214,7 +214,7 @@
   edge [post] (rie2);
   
   \node [observed, vspace] (rit2s) [below of=rit2]                        {$Y_2$}
-  edge [pre] node[constraintsb] {} (riSWB);
+  edge [pre] node[constraintsb] {1} (riSWB);
   
   % \node [state] (risy2) [right of=rit2s] {$S_{Y_2}$}
   % edge [post] node[constraints] {1} (rit2s);
@@ -226,7 +226,7 @@
   edge [post] (rie3);
   
   \node [observed, vspace] (rit3s) [below of=rit3]                        {$Y_3$}
-  edge [pre] node[constraintsb] {} (riSWB);
+  edge [pre] node[constraintsb] {1} (riSWB);
   
   % \node [state] (risy3) [right of=rit3s] {$S_{Y_3}$}
   % edge [post] node[constraints] {1} (rit3s);
@@ -238,7 +238,7 @@
   edge [post] (rie4);
   
   \node [observed,vspace] (rit4s) [below of=rit4]                        {$Y_4$}
-  edge [pre] node[constraintsb] {} (riSWB);
+  edge [pre] node[constraintsb] {1} (riSWB);
   
   % \node [state] (risy4) [right of=rit4s] {$S_{Y_4}$}
   % edge [post] node[constraints] {1} (rit4s);
