@@ -106,55 +106,24 @@ gen_starts <- function(n=500,      # N to generate
     }
     ## Remove rows from matrices before generating data if no variance
     ## adjust psi matrix
-    ifelse(ri_x==0 & ri_y==0,
-           psi <- psi[-c(1:2),-c(1:2)],
-    ifelse(ri_x==0 & ri_y>0,
-           psi <- psi[-1,-1],
-    ifelse(ri_x>0 & ri_y==0,
-           psi <- psi[-2,-2],
-           psi <- psi)))
-    ifelse(x==0 & y==0,
-           psi <- psi[-c(3:(2+(2*nwaves))),-c(3:(2+(2*nwaves)))],
-    ifelse(x==0 & y > 0,
-           psi <- psi[-c(3:(2+nwaves)),-c(3:(2+nwaves))],
-    ifelse(x > 0 & y==0,
-           psi <- psi[-c((3+nwaves):(3+(2*nwaves))),-c((3+nwaves):(3+(2*nwaves)))],
-           psi <- psi)))
+
+    toDelete <- c()
+    if(ri_x==0) toDelete <- c(1)
+    if(ri_y==0) toDelete <- c(toDelete, 2)
+    if(x==0) toDelete <- c(toDelete, c(3:(2+nwaves)))
+    if(y==0) toDelete <- c(toDelete, c((3+nwaves):(3+(2*nwaves))))
+    ## Delete rows and columns
+    if(!is.null(toDelete)) psi <- psi[-toDelete, -toDelete]
 
     ## adjust beta matrix
-    ifelse(ri_x==0 & ri_y==0,
-           beta <- beta[-c(1:2),-c(1:2)],
-    ifelse(ri_x==0 & ri_y>0,
-           beta <- beta[-1,-1],
-    ifelse(ri_x>0 & ri_y==0,
-           beta <- beta[-2,-2],
-           beta <- beta)))
-    ifelse(x==0 & y==0,
-           beta <- beta[-c(3:(2+(2*nwaves))),-c(3:(2+(2*nwaves)))],
-    ifelse(x==0 & y > 0,
-           beta <- beta[-c(3:(2+nwaves)),-c(3:(2+nwaves))],
-    ifelse(x > 0 & y==0,
-           beta <- beta[-c((3+nwaves):(3+(2*nwaves))),-c((3+nwaves):(3+(2*nwaves)))],
-           beta <- beta)))
-
-
+    ## Delete rows and columns
+    if(!is.null(toDelete)) beta <- beta[-toDelete, -toDelete]
+        
 
     ## adjust lambda matrix
-    ifelse(ri_x==0 & ri_y==0,
-           lambda <- lambda[,-c(1:2)],
-    ifelse(ri_x==0 & ri_y>0,
-           lambda <- lambda[,-1],
-    ifelse(ri_x>0 & ri_y==0,
-           lambda <- lambda[,-2],
-           lambda <- lambda)))
-    ifelse(x==0 & y==0,
-           lambda <- lambda[,-c(3:(2+(2*nwaves)))],
-    ifelse(x==0 & y > 0,
-           lambda <- lambda[,-c(3:(2+nwaves))],
-    ifelse(x > 0 & y==0,
-           lambda <- lambda[,-c((3+nwaves):(3+(2*nwaves)))],
-           lambda <- lambda)))
-
+    ## Delete rows and columns
+    if(!is.null(toDelete)) lambda <- lambda[,-toDelete]
+    
     diag_length <- (x>0)*nwaves + (y>0)*nwaves + sum(ri_x>0, ri_y>0) ## Dimensions of identity matrix
     ## Generate latent factor scores
     eta <- rmnorm(n, varcov = (solve(diag(diag_length)-beta) %*%
