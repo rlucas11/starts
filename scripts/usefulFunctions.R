@@ -26,10 +26,11 @@ plotCors <- function(cors) {
     cors <- cors %>%
         mutate(lag=row_number()) %>%
         pivot_longer(cols=starts_with("V"))
+    minCor <- min(cors$value)
 
     ggplot(aes(x=lag, y=value, group=name, color=name), data=cors) +
         geom_smooth(method="loess", se=FALSE, span=.4) +
-        ylim(0, 1)
+        ylim(min(minCor,0), 1)
 }
 
 
