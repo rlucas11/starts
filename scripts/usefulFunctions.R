@@ -17,7 +17,7 @@ summarizeR <- function(corMat, nvars=1) {
             averageRs[i,k] <- sumR/(nValid)
         }
     }
-    print(averageRs)
+    return(averageRs)
 }
 
 
@@ -29,7 +29,7 @@ plotCors <- function(cors) {
     minCor <- min(cors$value)
 
     ggplot(aes(x=lag, y=value, group=name, color=name), data=cors) +
-        geom_smooth(method="loess", se=FALSE, span=.4) +
+        geom_smooth(se=FALSE) +
         ylim(min(minCor,0), 1)
 }
 

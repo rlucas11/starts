@@ -52,6 +52,8 @@ library(tidyverse)
 library(knitr)
 library(rethinking)
 library(papaja)
+library(directlabels)
+library(gridExtra)
 
 ## Load scripts and models
 source("scripts/gen_starts.R") ## Generate data
@@ -63,6 +65,7 @@ source("scripts/ri_clpm3_c.R") ## Lavaan model for 3-wave ri-clpm with constrain
 source("scripts/ri_clpm10_c.R") ## Lavaan model for 10-wave ri-clpm with constraints
 source("scripts/starts_c.R") ## Lavaan model for 10-wave starts with constraints
 source("scripts/run_sim.R") ## Script to run simulations
+source("scripts/usefulFunctions.R") ## Summarize correlations w/ different lags
 
 ## Set options
 options(knitr.kable.NA='')
@@ -83,9 +86,9 @@ The goal of the current paper is to examine these defenses of the CLPM, focusing
 
 In their critique of the CLPM, @hamaker_critique_2015 described the RI-CLPM as a multilevel model that separates between-person associations from within-person associations. But what *is* a between-person association and how does it differ from a within-person association? Why is it important to separate these levels of analysis when examining lagged causal effects? These questions are critical, as answers to them form the basis for some debates---and misunderstandings---about the CLPM. 
 
-For instance, @orth_testing_2021 rely heavily on the *description* of the cross-lagged paths in the RI-CLPM as *within-person effects* in their defense of the CLPM. They state that "a potential disadvantage of the proposed alternatives to the CLPM is that they estimate within-person prospective effects only, but not between-person prospective effects" (p. 1014) and that "in many fields researchers are also interested in gaining information about the consequences of between-person differences" (p. 1014). They go on to argue that "a limitation of the RI-CLPM is that it does not provide any information about the consequences of between-person differences. In the RI-CLPM, the between-person differences are relegated to the random intercept factors" (p. 1026). Later on the same page, they state that "The RI-CLPM includes [an] unrealistic assumption, specifically that the between-person variance is perfectly stable" (p. 1026). @orth_testing_2021 do acknowledge later on in their paper that "some portion of the systematic between-person variance will be included in the residualized factors" (p. 1026). However, they argue that this discrepancy is a conceptual problem for the RI-CLPM: They state that "the cross-lagged effects in the RI-CLPM are not pure within-person effects but partially confounded with between-person variance" (p. 1026). 
+For instance, @orth_testing_2021 rely heavily on the description of the cross-lagged paths in the RI-CLPM as *within-person effects* in their defense of the CLPM. They state that "a potential disadvantage of the proposed alternatives to the CLPM is that they estimate within-person prospective effects only, but not between-person prospective effects" (p. 1014) and that "in many fields researchers are also interested in gaining information about the consequences of between-person differences" (p. 1014). They go on to argue that "a limitation of the RI-CLPM is that it does not provide any information about the consequences of between-person differences. In the RI-CLPM, the between-person differences are relegated to the random intercept factors" (p. 1026). Later on the same page, they state that "The RI-CLPM includes [an] unrealistic assumption, specifically that the between-person variance is perfectly stable" (p. 1026). @orth_testing_2021 do acknowledge later on in their paper that "some portion of the systematic between-person variance will be included in the residualized factors" (p. 1026). However, they argue that this discrepancy is a conceptual problem for the RI-CLPM: They state that "the cross-lagged effects in the RI-CLPM are not pure within-person effects but partially confounded with between-person variance" (p. 1026). These statements---statements that form the basis of Orth et al.'s defense of the CLPM---reflect a misunderstanding of the RI-CLPM and its relation to the CLPM.
 
-In this section, I argue that the "between-person effects" that @orth_effect_2022 hope to obtain can almost never be correctly estimated using the CLPM and that their claims about the limitations of the RI-CLPM and related models reflect a misunderstanding of these models. I also briefly discuss the fact that additional models beyond the RI-CLPM exist and can address at least some of the conceptual concerns about the RI-CLPM that remain after these misconceptions are corrected. 
+In this section, I argue that the "between-person effects" that @orth_effect_2022 hope to obtain can almost never be accurately estimated using the CLPM and that their claims about the limitations of the RI-CLPM and related models are incorrect. I also briefly discuss additional models beyond the RI-CLPM that can address at least some of the conceptual concerns about the RI-CLPM that remain after these misconceptions are corrected. 
 
 ## A Note About Models and Terminology
 
@@ -95,7 +98,7 @@ For instance, @nesselroade_interindividual_1991 noted that there are at least th
 
 In contrast, stable-trait factors reflect variance that is perfectly stable across all waves of assessment. If a construct consisted solely of stable trait variance, then wave-to-wave stability would be perfect regardless of the length of the interval between them. In between these two extremes are slowly changing trait factors where variance at one wave predicts variance at the next, but with less than perfect stability. @Kenny2001 labeled this as "autoregressive trait" variance, to reflect the fact that there is some "trait-like" stability (reflected in a non-zero stability coefficient from one wave to the next), along with change over the long term. Stability of this autoregressive trait factor declines with increasing interval length. Of course, these three components do not exhaust all possible patterns of stability and change [see, e.g., @usami_unified_2019; @zyphur_data_2020], but they reflect reasonable assumptions about features that are likely to generalize to a wide range of psychological variables. 
 
-It is possible to frame the CLPM and its modern alternatives in the context of these sources of variance[^kou]. For instance, Panel A of Figure \@ref(fig:riclpmFig) shows a diagram of the model that has been the focus of this paper: the CLPM. This model includes one latent variable per wave for the predictor (*X*) and the outcome (*Y*), and these latent variables have an autoregressive structure with cross-lagged associations that are meant to capture the causal effects. Notice that the CLPM does not include any measurement error for the indicators. This means that the latent variables from the autoregressive part of the model are equivalent to the observed variables (which is why it is also possible to draw an equivalent CLPM model with only observed variables). The CLPM assumes that all variance is of the slowly-changing, autoregressive variety described by @nesselroade_interindividual_1991. 
+It is possible to frame the CLPM and its modern alternatives in the context of these sources of variance[^kou]. For instance, Panel A of Figure \@ref(fig:riclpmFig) shows a diagram of the model that has been the focus of this paper: the CLPM. Although the CLPM can be drawn using only observed variables, Figure \@ref(fig:riclpmFig) includes latent variables to emphasize the relation to its more complex alternatives. The model includes one latent variable per wave for the predictor (*X*) and the outcome (*Y*), and these latent variables have an autoregressive structure with cross-lagged associations that are meant to capture the causal effects. Notice that the CLPM does not include any measurement error for the indicators. This means that the latent variables from the autoregressive part of the model are equivalent to the observed variables (which is why it is also possible to draw an equivalent CLPM model with only observed variables). The CLPM assumes that all variance is of the slowly-changing, autoregressive variety described by @nesselroade_interindividual_1991. 
 
 [^kou]: Though see @murayama_thinking_2022 for a discussion of precisely how these components should be conceptualized in a causal-modeling framework. 
 
@@ -103,19 +106,190 @@ It is possible to frame the CLPM and its modern alternatives in the context of t
 knitr::include_graphics("images/comboFigure.pdf")
 ```
 
-Panel B of Figure \@ref(fig:riclpmFig) shows the diagram of the RI-CLPM. The difference between the CLPM and the RI-CLPM is that the RI-CLPM includes a random intercept that accounts for "time-invariant, trait-like stability" [@hamaker_critique_2015, p.104]. The random intercept corresponds to purely stable trait variance and is thus labeled "Stable Trait" in the figure. Including this stable-trait component changes the meaning of the autoregressive part of the model. Whereas in the CLPM, the cross-lagged paths reflect associations between the *X* and *Y* variables over time, in the RI-CLPM, these paths reflect associations among wave-specific deviations from a person's stable-trait level. This is what allows for the separation of between and within-person associations and the interpretation of the cross-lagged association as a causal effect [@hamaker_critique_2015; @usami_differences_2020]. Note that the CLPM is nested within the RI-CLPM; the CLPM is equivalent to the RI-CLPM with the random-intercept (or stable-trait) variance constrained to 0. This also means that if one tries to fit the RI-CLPM to data with no stable-trait variance, the interpretation of the "within-person" or autoregressive part of the model will be identical to the interpretation of the CLPM. This will be a critical point when evaluating the validity of Orth et al.'s [-@orth_testing_2021] critiques of the RI-CLPM and related models.
+Panel B of Figure \@ref(fig:riclpmFig) shows the diagram of the RI-CLPM. The difference between the CLPM and the RI-CLPM is that the RI-CLPM includes a random intercept that accounts for "time-invariant, trait-like stability" [@hamaker_critique_2015, p.104]. The random intercept corresponds to purely stable trait variance and is thus labeled "Stable Trait" in the figure. Including this stable-trait component changes the meaning of the autoregressive part of the model. Whereas in the CLPM, the cross-lagged paths reflect associations between the *X* and *Y* variables over time, in the RI-CLPM, these paths reflect associations among wave-specific deviations from a person's stable-trait level. This is what allows for the separation of between and within-person associations and the interpretation of the cross-lagged association as a causal effect [@hamaker_critique_2015; @usami_differences_2020]. 
 
-The final model, presented in Panel C of Figure \@ref(fig:riclpmFig), is the bivariate Stable Trait, Autoregressive Trait, State (STARTS) model [@kenny_trait_1995; @Kenny2001], which I have not yet mentioned, but which will play a role in the simulations. The STARTS model differs from the RI-CLPM in that it includes includes a wave-specific "state" component (labeled *S* in the figure), which reflects variance in an observed variable that is perfectly "state-like" and unique to that occasion. This state component can include measurement error or any reliable variance that is unique to a single wave of assessment. The idea that some amount of pure state variance would exist in measures of psychological constructs is quite plausible [@Fraley2005PR], but simpler models like the RI-CLPM have often been preferred because the STARTS requires more waves of data than the RI-CLPM (four, to be precise) and often has estimation problems [e.g., @cole_empirical_2005; @orth_testing_2021; @usami_modeling_2019]. 
+Note that the CLPM is nested within the RI-CLPM; the CLPM is equivalent to the RI-CLPM with the random-intercept (or stable-trait) variance constrained to 0. This also means that if one tries to fit the RI-CLPM to data with no stable-trait variance, the interpretation of the "within-person" or autoregressive part of the model will be identical to the interpretation of the CLPM. This will be a critical point when evaluating the validity of Orth et al.'s [-@orth_testing_2021] critiques of the RI-CLPM and related models.
+
+The final model, presented in Panel C of Figure \@ref(fig:riclpmFig), is the bivariate Stable Trait, Autoregressive Trait, State (STARTS) model [@kenny_trait_1995; @Kenny2001], which I have not yet mentioned, but which will play a role in the later simulations. The STARTS model differs from the RI-CLPM in that it includes includes a wave-specific "state" component (labeled *S* in the figure), which reflects variance in an observed variable that is perfectly "state-like" and unique to that occasion. This state component can include measurement error or any reliable variance that is unique to a single wave of assessment. The idea that some amount of pure state variance would exist in measures of psychological constructs is quite plausible [@Fraley2005PR], but simpler models like the RI-CLPM have often been preferred because the STARTS requires more waves of data than the RI-CLPM (four, to be precise) and often has estimation problems [e.g., @cole_empirical_2005; @orth_testing_2021; @usami_modeling_2019]. 
 
 Recently, @usami_unified_2019 clarified that the CLPM, RI-CLPM, STARTS and many other longitudinal models could be thought of as variations of an overarching "unified" model that captures many different forms of change [also see @zyphur_data_2020 and @usami_differences_2020]. Because debates about the utility of the CLPM have primarily focused on debates about the inclusion of the random intercept, I focus in this paper primarily on the comparison of the CLPM to the RI-CLPM and the STARTS, as this comparison highlights these debates most clearly. It is certainly true, however, that if the other forms of change included in the unified model were part of the actual data generating process, then all the models covered in this paper would be misspecified and could lead to biased estimates. 
 
+As a final terminological note, I will try to reserve the term "effects" for causal links from one variable to another and I will use the term "associations" for empirical links where causality is not assumed or cannot be determined. I occasionally (and necessarily) deviate from this usage when describing certain claims about what these models can and cannot do. 
+
 ## Does the CLPM Provide Estimates of Between-Person Causal Effects?
 
-orth_testing_2021 noted that their defense of the CLPM is based on a preference for a model in which lagged associations reflect between-person causal effects. Can the cross-lagged paths in the CLPM be interpreted in this way? Unfortunately, in most cases, they cannot. This is due to the fact that a critical (and rarely discussed) assumption underlying the CLPM is likely to be violated in the types of data that psychologists and other social scientists are likely to use. Specifically, an important assumption in the CLPM is that the wave-specific disturbances (the *U*s in Figure \@ref(fig:riclpmFig)) are uncorrelated with the variables measured at prior waves. In other words, the standard CLPM requires that each variable in the model has a lag-1 autoregressive structure, where the association between any two waves is a function of the lag-1 stability and the number of lags between them. For instance, if a variable like self-esteem conformed to a lag-1 autoregressive structure and it had a one-year stability of .75, then the expected correlation for measures separated by two years would be .75 * .75 = `r .75 * .75`
+@orth_testing_2021 noted that their preference for the CLPM is based on their desire for a model in which lagged associations reflect between-person causal effects. Can the cross-lagged paths in the CLPM be interpreted in this way? Unfortunately, in most cases, they cannot. This is due to the fact that a critical (and rarely discussed) assumption underlying the CLPM is likely to be violated in the types of data that psychologists and other social scientists are likely to use. Specifically, an important assumption in the CLPM is that the wave-specific disturbances (the *U*s in the Panel A of Figure \@ref(fig:riclpmFig)) are uncorrelated with the variables measured at prior waves [@heise_causal_1970]. Any unmeasured variable that results in (unmodeled) correlations between these wave-specific disturbances will invalidate the interpretation of the cross-lagged associations as causal effects. 
 
-With two waves of data, it is impossible to evaluate this assumption. However, when more than two waves of data exist, it is possible to examine whether correlations decline in a manner that is consistent with a lag-1 autoregressive structure. To test the plausibility of this assumption, I selected ten diverse variables that have been included in almost every wave of the long-running Household Income and Labour Dynamics in Australia (HILDA) panel study, which now spans 20 waves of assessment [@watson_hilda_2012]. I intentionally selected variables from different domains, variables those that might have different psychometric properties due to how easily observable they are (e.g., weight and income are likely to be measured with less systematic and random error than life satisfaction or social support), and variables that might change in different ways over time. 
+A comparison of model-implied stability coefficients to real-world data shows that this assumption is quite likely to be violated. Figure \@ref(fig:hildaFig) provides an example of such a comparison. Panel A shows the implied stability coefficients over various intervals for three hypothetical variables, each with a lag-1 autoregressive structure. The three lines vary in their one-year stability, which range from .75 (shown in the top line) to .25 (shown in the bottom-line). For variables with this lag-1 autoregressive structure, the stability coefficient for any given interval is a function of the one-year stability raised to the power of the number of years that have elapsed. So, the expected correlation for a measure with a one-year stability of .75 assessed over a two year period would be .75^2^ = `r .75 * .75`. The expected correlation over a three-year period would be .75^3^ = `r .75^3`. Panel A shows that for variables with a lag-1 autoregressive structure, stability coefficients are expected to decline quickly over time, even for variables that were initially quite stable. 
 
-figure
+```{r hildaFig, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3, fig.cap="Implied stability over increasing time lags. The data from Panel A were generated from a lag-1 autoregressive model with no cross-lagged paths. The data from Panel B were generated from a model with cross-lagged associations. The data from Panel C show the actual stability of ten diverse variables from the a panel study.", dpi=300}
+nYears <- 10
+
+################################################################################
+## Plot AR-1 Data
+################################################################################
+## Function to calculate decline in correlations as lag increases
+arTrend <- function(x, n) {
+    corVec <- vector(length=n)
+    for (i in 1:n) {
+        corVec[i] <- x^i
+    }
+    return(corVec)
+}
+
+data <- data.frame(
+    Years = rep(1:nYears, 3),
+    Correlation = c(
+        arTrend(.75, nYears),
+        arTrend(.50, nYears),
+        arTrend(.25, nYears)
+    ),
+    Stability = rep(c(.75, .50, .25), each = nYears)
+)
+
+arPlot <- ggplot(aes(x=Years, y=Correlation, group=Stability),
+                 data=data) +
+    geom_line(lwd=.2) +
+        theme_grey(base_size = 8) +
+        ylim(-.1, 1) +
+        scale_x_continuous(labels=c(1:10), breaks=c(1:10)) +
+    theme(
+        panel.background = element_rect(fill='transparent', color=NA),
+        plot.background = element_rect(fill='transparent', color=NA),
+		axis.line = element_line(color="black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+    ) +
+    ggtitle('Panel A')
+
+################################################################################
+## Plot AR-1 Data with Cross-Lagged Paths
+################################################################################
+
+cl <- .20 ## 90th Percentile, from Orth
+dataCL.1 <- data.frame(
+    Years = rep(1:nYears, 3),
+    Correlation = c(
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = Years+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .75,
+            stab_y = .75,
+            yx = cl,
+            xy = cl,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+        )[, 1:11])),
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = Years+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .5,
+            stab_y = .5,
+            yx = cl,
+            xy = cl,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+        )[, 1:11])),
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = Years+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .25,
+            stab_y = .25,
+            yx = cl,
+            xy = cl,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+        )[, 1:11]))
+    ),
+    Stability = rep(c(.75, .50, .25), each = nYears)
+)
+
+clPlot <- ggplot(aes(x=Years, y=Correlation, group=Stability),
+                 data=dataCL.1) +
+    geom_line(lwd=.2) +
+        theme_grey(base_size = 8) +
+        ylim(-.1, 1) +
+        scale_x_continuous(labels=c(1:10), breaks=c(1:10)) +
+    theme(
+        panel.background = element_rect(fill='transparent', color=NA),
+        plot.background = element_rect(fill='transparent', color=NA),
+		axis.line = element_line(color="black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.y=element_blank(),
+    ) +
+    ggtitle('Panel B')
+
+################################################################################
+## Plot Actual Data from HILDA
+################################################################################
+
+hilda <- read_csv("data/hildaCors.csv")
+names(hilda) <- c("Year", "Correlation", "Variable")
+
+hildaPlot <- ggplot(aes(x=Year, y=Correlation, fill=Variable),
+                 data=hilda[hilda$Year <= 10,]) +
+    geom_line(lwd=.2) +
+	theme_grey(base_size=8) +
+    theme(
+        panel.background = element_rect(fill='transparent', color=NA),
+        plot.background = element_rect(fill='transparent', color=NA),
+		axis.line = element_line(color="black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill='transparent'),
+        legend.box.background = element_rect(fill='transparent'),
+        axis.text.y=element_blank(),
+        axis.title.y=element_blank(),
+    ) +
+    ylim(-.1, 1) +
+#    xlim(1,12) +
+    scale_x_continuous(labels=c(1:10), breaks=c(1:10), limits=c(1,12)) +
+    scale_color_manual(values = rep("black", 10)) +
+    ggtitle("Panel C")
+#direct.label(hildaPlot, "last.qp")
+
+################################################################################
+## Combine Plots
+################################################################################
+
+grid.arrange(arPlot,
+             clPlot,
+             direct.label(hildaPlot, list(cex=1, "last.qp")),
+             nrow=1)
+
+```
+
+The CLPM is based on this simple lag-1 autoregressive model, but extended to include lagged, reciprocal associations between two or more variables. The existence of any true lagged effects from one variable to another complicates expectations about patterns of stability over time. Specifically, if there are lagged effects from a moderately stable predictor, then stability coefficients will decline more slowly than in the case of data that has a simple lag-1 autoregressive structure. However, even in these more complex cases, stability coefficients are expected to decline more quickly than they typically do in real data. 
+
+Panel B shows the implied stability coefficients for data generated from a model that is consistent with a true cross-lagged process. I chose values likely underestimate the typical decline in stabilities with increasing interval length, because I set all cross-lagged effects to be .20, an effect that is in the 90th percentile of cross-lagged effects found in a recent meta-analysis of papers that used the CLPM [@orth_effect_2022][^dgp]. Comparing Panel B to Panel A shows that the existence of these cross-lagged associations slows the decline in stability coefficients, and that these differences are most pronounced in variables with high initial stabilities. 
+
+[^dgp]: For these data, I specified the initial correlation between the two variables to be .5. I also specified that they have equal variances, equal reciprocal effects, and equal one-year stability coefficients. These decisions minimize the decline in these coefficients with increasing interval length. If the "predictor" in this model had weaker stability than the "outcome," or if the cross-lagged path from the outcome to the predictor were weaker than that from the predictor to the outcome, then these stability coefficients would decline more quickly than is represented in this figure. 
+
+I then used real longitudinal data to examine the typical pattern of stability coefficients for a wide range of variables as a comparison. Specifically, I selected ten diverse variables that have been included in almost every wave of the long-running Household Income and Labour Dynamics in Australia (HILDA) panel study, which now spans 20 waves of assessment [@watson_hilda_2012]. I intentionally selected variables from different domains, variables those that might have different psychometric properties due to how easily observable they are (e.g., weight and income are likely to be measured with less systematic and random error than life satisfaction or social support), and variables that might change in different ways over time. Stability coefficients across lags ranging from 1 to 10 years are shown in Panel C. 
+
+A comparison of Panels B and C shows that stability coefficients for these diverse real-world variables decline much more slowly than would be predicted by a lag-1 autoregressive model or a lag-1 CLPM model, even one with cross-lagged paths that exceed the vast majority of effect sizes reported in the literature. These patterns of stability coefficients suggest that additional sources of stability contribute to these patterns, and stability in these unmeasured variables would invalidate the causal conclusions one would normally draw from the CLPM [@heise_causal_1970]. 
+
+It is important to note that these results reflect expectations from simple lag-1 autoregressive or cross-lagged models, and that more complex versions of these models can account for the slow decline in stability coefficients shown in Panel C. For instance, adding additional lagged effects from earlier waves or adding covariates from variables reflecting stable influences can help satisfy the assumptions underlying the causal interpretation of the cross-lagged paths [@murayama_thinking_2022, @ludtke_comparison_2022]. However, many implementations of the CLPM fail to include such features, and in these cases, this critical assumption is likely violated. 
 
 ## Ambiguity About Between- and Within-Person Effects
 
