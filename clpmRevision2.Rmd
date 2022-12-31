@@ -118,11 +118,11 @@ As a final terminological note, I will try to reserve the term "effects" for cau
 
 ## Does the CLPM Provide Estimates of Between-Person Causal Effects?
 
-@orth_testing_2021 noted that their preference for the CLPM is based on their desire for a model in which lagged associations reflect between-person causal effects. Can the cross-lagged paths in the CLPM be interpreted in this way? Unfortunately, in most cases, they cannot. This is due to the fact that a critical (and rarely discussed) assumption underlying the CLPM is likely to be violated in the types of data that psychologists and other social scientists are likely to use. Specifically, an important assumption in the CLPM is that the wave-specific disturbances (the *U*s in the Panel A of Figure \@ref(fig:riclpmFig)) are uncorrelated with the variables measured at prior waves [@heise_causal_1970]. Any unmeasured variable that results in (unmodeled) correlations between these wave-specific disturbances will invalidate the interpretation of the cross-lagged associations as causal effects. 
+@orth_testing_2021 noted that their preference for the CLPM is based on their desire for a model in which lagged associations reflect between-person causal effects. Can the cross-lagged paths in the CLPM be interpreted in this way? Unfortunately, in most cases, they cannot, at least with the standard CLPM. This is due to the fact that a critical assumption underlying the CLPM is likely to be violated in the types of data that psychologists and other social scientists are likely to use. Specifically, an important assumption in the CLPM is that the wave-specific disturbances (the *U*s in the Panel A of Figure \@ref(fig:riclpmFig)) are uncorrelated with the variables measured at prior waves [@heise_causal_1970]. Any unmeasured variable that results in (unmodeled) correlations between these wave-specific disturbances will invalidate the interpretation of the cross-lagged associations as causal effects. 
 
-A comparison of model-implied stability coefficients to real-world data shows that this assumption is quite likely to be violated. Figure \@ref(fig:hildaFig) provides an example of such a comparison. Panel A shows the implied stability coefficients over various intervals for three hypothetical variables, each with a lag-1 autoregressive structure. The three lines vary in their one-year stability, which range from .75 (shown in the top line) to .25 (shown in the bottom-line). For variables with this lag-1 autoregressive structure, the stability coefficient for any given interval is a function of the one-year stability raised to the power of the number of years that have elapsed. So, the expected correlation for a measure with a one-year stability of .75 assessed over a two year period would be .75^2^ = `r .75 * .75`. The expected correlation over a three-year period would be .75^3^ = `r .75^3`. Panel A shows that for variables with a lag-1 autoregressive structure, stability coefficients are expected to decline quickly over time, even for variables that were initially quite stable. 
+A comparison of model-implied stability coefficients to real-world data shows that this assumption is quite likely to be violated. Figure \@ref(fig:hildaFig) provides an example of such a comparison. To begin, consider a single variable that has a lag-1 autoregressive structure, such that current standing on that variable is determined by past standing (through a stability coefficient), and a disturbance term. Panel A shows the implied stability coefficients over various intervals for three hypothetical variables, each with a lag-1 autoregressive structure. The three lines represent variables that differ in their one-year stability, which ranges from .75 (shown in the top line) to .25 (shown in the bottom-line). For variables with this lag-1 autoregressive structure, the stability over any given interval is a function of the one-year stability raised to the power of the number of years that have elapsed. So, the expected correlation for a measure with a one-year stability of .75 assessed over a two year period would be .75^2^ = `r .75 * .75`. The expected correlation over a three-year period would be .75^3^ = `r .75^3`. Panel A shows that for variables with a lag-1 autoregressive structure, stability coefficients are expected to decline quickly over time, even for variables that were initially quite stable. If actual stability coefficients decline more slowly than what is shown in Panel A of Figure \@ref(fig:hildaFig), then this would suggest that variable does not have a lag-1 autoregressive structure.
 
-```{r hildaFig, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3, fig.cap="Implied stability over increasing time lags. The data from Panel A were generated from a lag-1 autoregressive model with no cross-lagged paths. The data from Panel B were generated from a model with cross-lagged associations. The data from Panel C show the actual stability of ten diverse variables from the a panel study.", dpi=300}
+```{r hildaFig, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3, fig.cap="Implied and actual stability over increasing time lags. The data from Panel A were generated from a lag-1 autoregressive model with no cross-lagged paths. The data from Panel B were generated from a model with cross-lagged effects. The data from Panel C show the actual stability of ten diverse variables from a panel study.", dpi=300}
 nYears <- 10
 
 ################################################################################
@@ -172,7 +172,7 @@ dataCL.1 <- data.frame(
     Correlation = c(
         summarizeR(cor(gen_starts(
             n = 10000,
-            nwaves = Years+1,
+            nwaves = nYears+1,
             ri_x = 0,
             ri_y = 0,
             cor_i = 0,
@@ -188,7 +188,7 @@ dataCL.1 <- data.frame(
         )[, 1:11])),
         summarizeR(cor(gen_starts(
             n = 10000,
-            nwaves = Years+1,
+            nwaves = nYears+1,
             ri_x = 0,
             ri_y = 0,
             cor_i = 0,
@@ -204,7 +204,7 @@ dataCL.1 <- data.frame(
         )[, 1:11])),
         summarizeR(cor(gen_starts(
             n = 10000,
-            nwaves = Years+1,
+            nwaves = nYears+1,
             ri_x = 0,
             ri_y = 0,
             cor_i = 0,
@@ -234,8 +234,8 @@ clPlot <- ggplot(aes(x=Years, y=Correlation, group=Stability),
 		axis.line = element_line(color="black"),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        axis.text.y=element_blank(),
-        axis.title.y=element_blank(),
+        ## axis.text.y=element_blank(),
+        ## axis.title.y=element_blank()
     ) +
     ggtitle('Panel B')
 
@@ -258,46 +258,54 @@ hildaPlot <- ggplot(aes(x=Year, y=Correlation, fill=Variable),
         panel.grid.minor = element_blank(),
         legend.background = element_rect(fill='transparent'),
         legend.box.background = element_rect(fill='transparent'),
-        axis.text.y=element_blank(),
-        axis.title.y=element_blank(),
+        ## axis.text.y=element_blank(),
+        ## axis.title.y=element_blank(),
     ) +
     ylim(-.1, 1) +
 #    xlim(1,12) +
-    scale_x_continuous(labels=c(1:10), breaks=c(1:10), limits=c(1,12)) +
+    scale_x_continuous(labels=c(1:10), breaks=c(1:10), limits=c(1,11)) +
     scale_color_manual(values = rep("black", 10)) +
     ggtitle("Panel C")
-#direct.label(hildaPlot, "last.qp")
+#direct.label(hildaPlot, "angled.boxes")
 
 ################################################################################
 ## Combine Plots
 ################################################################################
-
+my.dl <- list(fill="white", "draw.rects")
 grid.arrange(arPlot,
              clPlot,
-             direct.label(hildaPlot, list(cex=1, "last.qp")),
+##             direct.label(hildaPlot, list(cex=.3, "angled.boxes")),
+             direct.label(hildaPlot, list(cex=.3,
+                             "far.from.others.borders",
+                             "calc.boxes",
+                             "enlarge.box",
+                             "my.dl")),
              nrow=1)
+
 
 ```
 
-The CLPM is based on this simple lag-1 autoregressive model, but extended to include lagged, reciprocal associations between two or more variables. The existence of any true lagged effects from one variable to another complicates expectations about patterns of stability over time. Specifically, if there are lagged effects from a moderately stable predictor, then stability coefficients will decline more slowly than in the case of data that has a simple lag-1 autoregressive structure. However, even in these more complex cases, stability coefficients are expected to decline more quickly than they typically do in real data. 
+The standard CLPM builds on this simple lag-1 autoregressive model, extending it to include lagged, reciprocal associations between two or more variables. The existence of any true lagged effects from one variable to another complicates expectations about patterns of stability over time. Specifically, if there are lagged effects from a predictor that itself has some stability, then stability coefficients for the outcome will decline more slowly than if the variable had a simple lag-1 autoregressive structure. 
 
-Panel B shows the implied stability coefficients for data generated from a model that is consistent with a true cross-lagged process. I chose values likely underestimate the typical decline in stabilities with increasing interval length, because I set all cross-lagged effects to be .20, an effect that is in the 90th percentile of cross-lagged effects found in a recent meta-analysis of papers that used the CLPM [@orth_effect_2022][^dgp]. Comparing Panel B to Panel A shows that the existence of these cross-lagged associations slows the decline in stability coefficients, and that these differences are most pronounced in variables with high initial stabilities. 
+Panel B shows the implied stability coefficients for data generated from a model that is consistent with a true cross-lagged process. It is important to note that for this example, I chose values that are likely to underestimate the typical decline in stabilities that emerge with increasing interval length because I set all cross-lagged effects to be .20, an effect that is in the 90th percentile of cross-lagged effects found in a recent meta-analysis of papers that used the CLPM [@orth_effect_2022].[^dgp] Comparing Panel B to Panel A shows that the existence of these cross-lagged associations slows the decline in stability coefficients, and that these differences are most pronounced in variables with high initial stabilities. But how do these compare to patterns of stability that are found in real data?
 
 [^dgp]: For these data, I specified the initial correlation between the two variables to be .5. I also specified that they have equal variances, equal reciprocal effects, and equal one-year stability coefficients. These decisions minimize the decline in these coefficients with increasing interval length. If the "predictor" in this model had weaker stability than the "outcome," or if the cross-lagged path from the outcome to the predictor were weaker than that from the predictor to the outcome, then these stability coefficients would decline more quickly than is represented in this figure. 
 
-I then used real longitudinal data to examine the typical pattern of stability coefficients for a wide range of variables as a comparison. Specifically, I selected ten diverse variables that have been included in almost every wave of the long-running Household Income and Labour Dynamics in Australia (HILDA) panel study, which now spans 20 waves of assessment [@watson_hilda_2012]. I intentionally selected variables from different domains, variables those that might have different psychometric properties due to how easily observable they are (e.g., weight and income are likely to be measured with less systematic and random error than life satisfaction or social support), and variables that might change in different ways over time. Stability coefficients across lags ranging from 1 to 10 years are shown in Panel C. 
+As a comparison, I used real longitudinal data to examine the typical pattern of stability coefficients for a wide range of variables. Specifically, I selected ten diverse variables[^variables] that have been included in almost every wave of the long-running Household Income and Labour Dynamics in Australia (HILDA) panel study, which now spans 20 waves of assessment [@watson_hilda_2012]. I intentionally selected variables from different domains, variables those that might have different psychometric properties due to how easily observable they are (e.g., weight and income are likely to be measured with less systematic and random error than life satisfaction or social support), and variables that might change in different ways over time. Stability coefficients across lags ranging from 1 to 10 years are shown in Panel C. 
 
-A comparison of Panels B and C shows that stability coefficients for these diverse real-world variables decline much more slowly than would be predicted by a lag-1 autoregressive model or a lag-1 CLPM model, even one with cross-lagged paths that exceed the vast majority of effect sizes reported in the literature. These patterns of stability coefficients suggest that additional sources of stability contribute to these patterns, and stability in these unmeasured variables would invalidate the causal conclusions one would normally draw from the CLPM [@heise_causal_1970]. 
+[^variables]: These variables include weight, average monthly wages, self-reported health status, social support, reports of pain, reports of feeling rushed, life satisfation, commuting time, amount of physical activity, and household income.
 
-It is important to note that these results reflect expectations from simple lag-1 autoregressive or cross-lagged models, and that more complex versions of these models can account for the slow decline in stability coefficients shown in Panel C. For instance, adding additional lagged effects from earlier waves or adding covariates from variables reflecting stable influences can help satisfy the assumptions underlying the causal interpretation of the cross-lagged paths [@murayama_thinking_2022; @ludtke_comparison_2022]. However, many implementations of the CLPM fail to include such features, and in these cases, this critical assumption is likely violated. 
+A comparison of Panels B and C shows that stability coefficients for these diverse real-world variables decline much more slowly than would be predicted by a lag-1 autoregressive model or even a lag-1 CLPM model with substantial cross-lagged effects (i.e., even when cross-lagged paths that exceed the vast majority of effect sizes reported in the literature). These patterns of stability coefficients suggest that additional sources of stability contribute to these patterns, and stability in these unmeasured variables would invalidate the causal conclusions one would normally draw from the CLPM [@heise_causal_1970]. Thus, the standard CLPM is unlikely to accomplish the goal of estimating between-person causal effects that @orth_testing_2021 articulated[^lag2].
+
+[^lag2]: It is important to note that these results reflect expectations from simple lag-1 autoregressive or cross-lagged models, and that more complex versions of these models can account for the slow decline in stability coefficients shown in Panel C. For instance, adding additional lagged effects from earlier waves or adding covariates from variables reflecting stable influences can help satisfy the assumptions underlying the causal interpretation of the cross-lagged paths [@murayama_thinking_2022; @ludtke_comparison_2022]. However, many implementations of the CLPM fail to include such features, and in these cases, this critical assumption is likely violated. 
 
 ## Ambiguity About Between- and Within-Person Effects
 
+The problems with Orth et al.'s [-@orth_testing_2021] argument extends beyond the problems with this assumption. As noted above, their primary concern is that researchers are often not interested in "within-person" causal effects and instead want to assess between-person causal effects. However, their description of these effects suggest that they misinterpret what alternatives to the CLPM do and how the estimates from these models should be interpreted. 
+
 Certain aspects of the between/within distinction are clear and unambiguous. When data are collected from multiple participants at a single point in time, there can only be between-person variance. All associations that can be observed in these data are necessarily between-person associations. For instance, in cross-sectional data, a negative correlation between self-esteem and depression can only be interpreted as a between-person association: People who score high on measures of self-esteem tend to score low on measures of depression. If, on the other hand, just a single individual is assessed repeatedly over time, all variance is within-person variance and all associations would be within-person associations. For example, if a single person's self-esteem and depression were tracked over time, a negative correlation would reflect a within-person association: When self-esteem is high in that individual, feelings of depression tend to be low. 
 
-The potential for confusion about these labels arises, however, when data are collected from multiple people across multiple occasions. Such data include information both about how people differ from one another (between-person variance) and how each person changes over time (within-person variance). Describing associations unambiguously as "between" versus "within" becomes more challenging with these multilevel data. The decision to label an association as "between" or "within" is not always linked in a straightforward way to the type of data that contribute to the effect.  
-
-This is important because Confusion about these issues likely results from the previously mentioned ambiguities regarding the terms "between-person" and "within-person," along with differences in the ways that different types of multilevel models separate between- and within-person associations. The RI-CLPM separates between-person associations from within-person associations, but it does not do so by "relegating all between-person differences to the random intercept." 
+The potential for confusion about these labels arises, however, when data are collected from multiple people across multiple occasions. Such data include information both about how people differ from one another (between-person variance) and how each person changes over time (within-person variance). Describing associations unambiguously as "between" versus "within" becomes more challenging with these multilevel data. The decision to label an association as "between" or "within" is not always linked in a straightforward way to the type of data that contribute to the effect. 
 
 As @curran_disaggregation_2011 noted, what is probably the most familiar way to separate between-person associations from within-person associations is the use of person-mean centering. For instance, in the context of multilevel modeling, researchers are often warned that if they are not careful about how they enter variables into the model, what may look like within-person associations (e.g., the "Level-1" effects in repeated-measures data) can actually reflect a mix of between and within. The recommended solution in this context is to person-center the predictor [e.g., @curran_disaggregation_2011; @enders2007centering], where each observation now reflects a deviation from a person's mean. When centering this way, the Level-1 part of the model tests whether occasion-specific deviations from a person's mean predict variability in the outcome. 
 
