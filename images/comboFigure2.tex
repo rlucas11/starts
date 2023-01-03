@@ -18,14 +18,14 @@
     latentAR/.style={ellipse,draw=black!75,minimum size=7mm},
     observed/.style={rectangle,draw=black!75,minimum size=5mm, align=center},
     error/.style={circle,draw=black!75,minimum size=.9mm},
-    errorAR/.style={circle,draw=black!75,minimum size=1mm, node distance=.73cm},
+    errorAR/.style={circle,draw=black!75,minimum size=.9mm, node distance=1.5cm, scale=.7},
     state/.style={circle,draw=black!75,minimum size=1mm, scale=.75, align=center, node distance=1.7cm},
     hspace/.style={node distance=2.7cm},
-    vspace/.style={node distance=4.25cm},
+    vspace/.style={node distance=5cm},
     % edge styles
-    indicatorDist/.style={node distance=1.2cm},
+    indicatorDist/.style={node distance=1cm},
     errorDist/.style={node distance=.73cm},
-    newARDist/.style={node distance=1.2cm},
+    newARDist/.style={node distance=1.3cm},
     stabDist/.style={node distance=1cm},
     %label styles
     constraints/.style={scale=.75,above},
@@ -41,7 +41,7 @@
   % X Vars (Health)
 
   \node [latentTrait] (health) at (-.5,.5)                        {X Stable Trait};
-  \node [observed] (t1) at (-4.5,-1.5)                        {$X_1$}
+  \node [observed] (t1) at (-4.5,-1)                        {$X_1$}
   edge [pre] node[constraints] {} (health);
 
   \node [state] (s1) [right of=t1] {$S_{X_1}$}
@@ -82,7 +82,7 @@
 
   
   % SWB
-  \node [latentTrait] (SWB) [below of=health, node distance = 8cm]         {Y Stable Trait};
+  \node [latentTrait] (SWB) [below of=health, node distance = 7.95cm]         {Y Stable Trait};
   \node [observed, vspace] (t1s) [below of=t1] {$Y_1$}
   edge [pre] node[constraintsb] {} (SWB);
   
@@ -129,12 +129,12 @@
   edge [pre] (e3);
 
   % Error
-  \node [errorAR] (t2eh) [below of=e2] {$u$} edge [post] (e2);
-  \node [errorAR] (t2es) [above of=e2s] {} edge [post] (e2s);
-  \node [errorAR] (t3eh) [below of=e3] {} edge [post] (e3);
-  \node [errorAR] (t3es) [above of=e3s] {} edge [post] (e3s);
-  \node [errorAR] (t4eh) [below of=e4] {} edge [post] (e4);
-  \node [errorAR] (t4es) [above of=e4s] {} edge [post] (e4s);
+  \node [errorAR] (t2eh) [below of=e2] {$u_{X_2}$} edge [post] (e2);
+  \node [errorAR] (t2es) [above of=e2s] {$u_{Y_2}$} edge [post] (e2s);
+  \node [errorAR] (t3eh) [below of=e3] {$u_{X_3}$} edge [post] (e3);
+  \node [errorAR] (t3es) [above of=e3s] {$u_{Y_3}$} edge [post] (e3s);
+  \node [errorAR] (t4eh) [below of=e4] {$u_{X_4}$} edge [post] (e4);
+  \node [errorAR] (t4es) [above of=e4s] {$u_{Y_4}$} edge [post] (e4s);
 
 
   % Correlations
@@ -142,12 +142,12 @@
   (left:7cm) .. node[sloped,above] {} (health);
   \draw [<->] (e1s) .. controls + (left:1.5cm) and +
   (left:1.5cm) .. (e1);
-  \draw [<->] (t2es) .. controls + (right:.5cm) and +
-  (right:.5cm) ..  (t2eh);
-  \draw [<->] (t3es) .. controls + (right:.5cm) and +
-  (right:.5cm) ..  (t3eh);
-  \draw [<->] (t4es) .. controls + (right:.5cm) and +
-  (right:.5cm) .. node[above,rotate=-90,scale=.75] {}  (t4eh);
+  \draw [<->] (t2es) .. controls + (right:.75cm) and +
+  (right:.75cm) ..  (t2eh);
+  \draw [<->] (t3es) .. controls + (right:.75cm) and +
+  (right:.75cm) ..  (t3eh);
+  \draw [<->] (t4es) .. controls + (right:.75cm) and +
+  (right:.75cm) .. node[above,rotate=-90,scale=.75] {}  (t4eh);
 
   % Panel Label
   \node (label1) [below of=SWB, node distance=1cm] {Panel C: STARTS};
@@ -160,7 +160,7 @@
 
     % X Vars (Health)
 
-  \node [latentTrait] (rihealth) at (-.5,11.5)                        {X Stable Trait};
+  \node [latentTrait] (rihealth) at (-.5,11)                        {X Stable Trait};
   \node [observed] (rit1) at (-4.5,9.5)                        {$X_1$}
   edge [pre] node[constraints] {} (rihealth);
 
@@ -249,12 +249,12 @@
   edge [pre] (rie3);
 
   % Error
-  \node [errorAR] (rit2eh) [below of=rie2] {} edge [post] (rie2);
-  \node [errorAR] (rit2es) [above of=rie2s] {} edge [post] (rie2s);
-  \node [errorAR] (rit3eh) [below of=rie3] {} edge [post] (rie3);
-  \node [errorAR] (rit3es) [above of=rie3s] {} edge [post] (rie3s);
-  \node [errorAR] (rit4eh) [below of=rie4] {} edge [post] (rie4);
-  \node [errorAR] (rit4es) [above of=rie4s] {} edge [post] (rie4s);
+  \node [errorAR] (rit2eh) [below of=rie2] {$u_{X_2}$} edge [post] (rie2);
+  \node [errorAR] (rit2es) [above of=rie2s] {$u_{Y_2}$} edge [post] (rie2s);
+  \node [errorAR] (rit3eh) [below of=rie3] {$u_{X_3}$} edge [post] (rie3);
+  \node [errorAR] (rit3es) [above of=rie3s] {$u_{Y_3}$} edge [post] (rie3s);
+  \node [errorAR] (rit4eh) [below of=rie4] {$u_{X_4}$} edge [post] (rie4);
+  \node [errorAR] (rit4es) [above of=rie4s] {$u_{Y_4}$} edge [post] (rie4s);
 
 
   % Correlations
@@ -262,12 +262,12 @@
   (left:7cm) .. node[sloped,above] {} (rihealth);
   \draw [<->] (rie1s) .. controls + (left:1.5cm) and +
   (left:1.5cm) .. (rie1);
-  \draw [<->] (rit2es) .. controls + (right:.5cm) and +
-  (right:.5cm) ..  (rit2eh);
-  \draw [<->] (rit3es) .. controls + (right:.5cm) and +
-  (right:.5cm) ..  (rit3eh);
-  \draw [<->] (rit4es) .. controls + (right:.5cm) and +
-  (right:.5cm) .. node[above,rotate=-90,scale=.75] {}  (rit4eh);
+  \draw [<->] (rit2es) .. controls + (right:.75cm) and +
+  (right:.75cm) ..  (rit2eh);
+  \draw [<->] (rit3es) .. controls + (right:.75cm) and +
+  (right:.75cm) ..  (rit3eh);
+  \draw [<->] (rit4es) .. controls + (right:.75cm) and +
+  (right:.75cm) .. node[above,rotate=-90,scale=.75] {}  (rit4eh);
 
   % Panel Label
   \node (label2) [below of=riSWB, node distance=1cm] {Panel B: RI-CLPM};
@@ -332,23 +332,23 @@
   edge [pre] (cle3);
 
   % Error
-  \node [errorAR] (clt2eh) [below of=cle2] {} edge [post] (cle2);
-  \node [errorAR] (clt2es) [above of=cle2s] {} edge [post] (cle2s);
-  \node [errorAR] (clt3eh) [below of=cle3] {} edge [post] (cle3);
-  \node [errorAR] (clt3es) [above of=cle3s] {} edge [post] (cle3s);
-  \node [errorAR] (clt4eh) [below of=cle4] {} edge [post] (cle4);
-  \node [errorAR] (clt4es) [above of=cle4s] {} edge [post] (cle4s);
+  \node [errorAR] (clt2eh) [below of=cle2] {$u_{X_2}$} edge [post] (cle2);
+  \node [errorAR] (clt2es) [above of=cle2s] {$u_{Y_2}$} edge [post] (cle2s);
+  \node [errorAR] (clt3eh) [below of=cle3] {$u_{X_3}$} edge [post] (cle3);
+  \node [errorAR] (clt3es) [above of=cle3s] {$u_{Y_3}$} edge [post] (cle3s);
+  \node [errorAR] (clt4eh) [below of=cle4] {$u_{X_4}$} edge [post] (cle4);
+  \node [errorAR] (clt4es) [above of=cle4s] {$u_{Y_4}$} edge [post] (cle4s);
 
 
   % Correlations
   \draw [<->] (cle1s) .. controls + (left:1.5cm) and +
   (left:1.5cm) .. (cle1);
-  \draw [<->] (clt2es) .. controls + (right:.5cm) and +
-  (right:.5cm) ..  (clt2eh);
-  \draw [<->] (clt3es) .. controls + (right:.5cm) and +
-  (right:.5cm) ..  (clt3eh);
-  \draw [<->] (clt4es) .. controls + (right:.5cm) and +
-  (right:.5cm) .. node[above,rotate=-90,scale=.75] {}  (clt4eh);
+  \draw [<->] (clt2es) .. controls + (right:.75cm) and +
+  (right:.75cm) ..  (clt2eh);
+  \draw [<->] (clt3es) .. controls + (right:.75cm) and +
+  (right:.75cm) ..  (clt3eh);
+  \draw [<->] (clt4es) .. controls + (right:.75cm) and +
+  (right:.75cm) .. node[above,rotate=-90,scale=.75] {}  (clt4eh);
 
   % Panel Label
   \node (label3) [above of=label2, node distance=11cm] {Panel A: CLPM};
