@@ -40,7 +40,7 @@
   
   % X Vars (Health)
 
-  \node [latentTrait] (health) at (-.5,.5)                        {X Stable Trait};
+  \node [latentTrait] (health) at (-.5,.5)                        {$\eta_X$};
   \node [observed] (t1) at (-4.5,-1.5)                        {$X_1$};
 
 
@@ -73,7 +73,7 @@
 
   
   % SWB
-  \node [latentTrait] (SWB) [below of=health, node distance = 8cm]         {Y Stable Trait};
+  \node [latentTrait] (SWB) [below of=health, node distance = 8cm]         {$\eta_Y$};
   \node [observed, vspace] (t1s) [below of=t1] {$Y_1$}
   %edge [<->] node[constraintsb] {} (SWB)
   edge [post] node[constraints] {} (t2);
