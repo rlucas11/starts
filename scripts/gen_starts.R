@@ -30,7 +30,7 @@ gen_starts <- function(n=500,      # N to generate
 
     ## Transform correlations into covariances for matrices
     cor_i <- cor_i * (sqrt(ri_x) * sqrt(ri_y))
-    cor_xy <- cor_xy * (sqrt(x) * sqrt(x))
+    cor_xy <- cor_xy * (sqrt(x) * sqrt(y))
 
     ## Stationarity Constraints
     ifelse(x==0, wxr <- 0, wxr <- (1-stab_x^2)*x - 2*stab_x*xy*cor_xy - xy^2*y)
