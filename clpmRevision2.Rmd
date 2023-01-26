@@ -648,7 +648,9 @@ names(inTextResults) <- names(results5) <- c("N", "r","Reliability", "autoregres
 
 ```
 
-Figure \@ref(fig:simFig5) shows a set of simulations that are similar to those reported in Figure \@ref(fig:simFig), but this time using five waves of data and the CLPM with equality constraints across waves. When comparing these two figures, the effect of increasing the number of waves is immediately apparent: Error rates increase considerably. For instance, in the very realistic scenario of an N of 250, a correlation between stable traits of .5, non-state variance ratio of .7, and a 1:1 ratio of stable-trait to autoregressive variance, the error rate increases from `r round(results2[results2$N==250&results2$r==.5&results2$"Non-State Ratio"==.70&results2$Autoregressive==1,5]*100, 0)`% to `r round(inTextResults[inTextResults$N==250&inTextResults$r==.5&inTextResults$Reliability==.7&inTextResults$autoregressive==1,5]*100,0)`% when moving from a two-wave study to a five-wave study. With five waves of data, error rates often exceed 50%, even in samples as small as 50. So features that are generally desirable---large sample sizes and multiple waves of assessment---increase the likelihood of finding spurious cross-lagged effects. 
+Figure \@ref(fig:simFig5) shows a set of simulations that are similar to those reported in Figure \@ref(fig:simFig), but this time using five waves of data and the CLPM with equality constraints across waves. When comparing these two figures, the effect of increasing the number of waves is immediately apparent: Error rates increase considerably. For instance, in the very realistic scenario of an N of 250, a correlation between stable traits of .5, non-state variance ratio of .7, and a 1:1 ratio of stable-trait to autoregressive variance, the error rate increases from `r round(results2[results2$N==250&results2$r==.5&results2$"Non-State Ratio"==.70&results2$Autoregressive==1,5]*100, 0)`% to `r round(inTextResults[inTextResults$N==250&inTextResults$r==.5&inTextResults$Reliability==.7&inTextResults$autoregressive==1,5]*100,0)`% when moving from a two-wave study to a five-wave study. With five waves of data, error rates often exceed 50%, even in samples as small as 50. So features that are generally desirable---large sample sizes and multiple waves of assessment---increase the likelihood of finding spurious cross-lagged effects[^power]. 
+
+[^power]: These same features may also increase power to reject poorly-fitting models, though some discussions of the CLPM and its alternatives downplay the role of model fit in selecting models [e.g., @orth_testing_2021]. 
 
 ## Modeling Stable Traits Is Not Conservative
 
@@ -805,16 +807,11 @@ A preprint of this paper was posted on the PsyArXiv preprint server: https://psy
 
 This paper uses unit record data from Household, Income and Labour Dynamics in Australia Survey [HILDA] conducted by the Australian Government Department of Social Services (DSS). The findings and views reported in this paper, however, are those of the author[s] and should not be attributed to the Australian Government, DSS, or any of DSS’ contractors or partners. DOI: doi:10.26193/YP7MNU
 
+\newpage
+
 # References
 
 ```{r create_r-references}
 ## papaja::r_refs(file = "r-references.bib", append = FALSE)
-```
-::: {#refs}
-:::
-
-# Online Supplement
-
-```{r child = "supplement.Rmd"}
 ```
 

@@ -1,3 +1,68 @@
+---
+title: "Supplement to: Why The Cross-Lagged Panel Model is Almost Never the Right Choice"
+shorttitle: "Cross-Lagged Panel Model"
+author: 
+  - name: Richard E. Lucas
+    affiliation: 1
+    corresponding: yes    # Define only one corresponding author
+    address: "316 Physics Rd., Michigan State University, East Lansing, MI 48823"
+    email: "lucasri@msu.edu"
+affiliation:
+  - id: 1
+    institution: "Department of Psychology, Michigan State University"
+
+header-includes:
+   - \usepackage{todonotes}
+   - \usepackage{setspace}
+   - \AtBeginEnvironment{tabular}{\singlespacing}
+   - \AtBeginEnvironment{lltable}{\singlespacing}
+   - \AtBeginEnvironment{ThreePartTable}{\singlespacing}
+   - \AtBeginEnvironment{tablenotes}{\doublespacing}
+   - \captionsetup[table]{font={stretch=1.5}}
+   - \captionsetup[figure]{font={stretch=1.5}}
+   - \raggedbottom
+
+bibliography:
+   - '/home/rich/Dropbox/MyLibraryZ2.bib'
+   - r-references.bib
+floatsintext: yes
+mask: no
+linenumbers: no
+documentclass: "apa6"
+classoption: "man"
+output: 
+  papaja::apa6_pdf:
+  fig_caption: yes
+
+---
+
+```{r setup, include=FALSE}
+## Load packages
+library(lavaan)
+library(tidyverse)
+library(knitr)
+library(rethinking)
+library(papaja)
+library(directlabels)
+library(gridExtra)
+
+## Load scripts and models
+source("scripts/gen_starts.R") ## Generate data
+source("scripts/clpm2_c.R") ## Lavaan model for 2-wave clpm with constraints
+source("scripts/clpm3_c.R") ## Lavaan model for 3-wave clpm with constraints
+source("scripts/clpm5_c.R") ## Lavaan model for 5-wave clpm with constraints
+source("scripts/clpm10_c.R") ## Lavaan model for 10-wave clpm with constraints
+source("scripts/ri_clpm3_c.R") ## Lavaan model for 3-wave ri-clpm with constraints
+source("scripts/ri_clpm10_c.R") ## Lavaan model for 10-wave ri-clpm with constraints
+source("scripts/starts_c.R") ## Lavaan model for 10-wave starts with constraints
+source("scripts/run_sim.R") ## Script to run simulations
+source("scripts/usefulFunctions.R") ## Summarize correlations w/ different lags
+
+## Set options
+options(knitr.kable.NA='')
+
+```
+
 # Confusion About Between-Person and Within-Person Associations
 
 As noted in the main text, confusion about the interpretation of models like the RI-CLPM likely results from the discussed ambiguities regarding the terms "between-person" and "within-person," along with differences in the ways that different types of multilevel models separate between- and within-person associations. The RI-CLPM separates between-person associations from within-person associations, but it does not do so by relegating all between-person differences to the random intercept [cf. @orth_testing_2021].
@@ -24,3 +89,7 @@ It is the third panel of this figure, however, that most closely represents (in 
 [^converge]: Note that this model fit to data with no stable trait variance will often result in inadmissable solutions because with true latent-trait variance of 0, it is possible to get estimates that are negative, as is the case in the data generated for this example. 
 
 A comparison of the variance estimates across Panels B and C show that the latent trait that links the three observations captures something very different in a simple latent-trait model as compared to a model with structured residuals. However, one could describe either the latent trait from Panel B or the one from Panel C as reflecting the "between-person variance" in these assessments. The latent trait in Panel B captures between-person differences in mean levels of *X* during the observed period of assessment; the latent trait in Panel C captures between-person differences in *a hypothetically perfectly stable* trait. Moreover, one could describe the residuals in either model as reflecting the "within-person" part of the model even though they correspond to conceptually different things. The occasion-specific residuals in Panel C do not reflect deviations from the person mean, they reflect deviations from the perfectly stable trait. 
+
+\newpage 
+
+# References
