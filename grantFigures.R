@@ -4,7 +4,7 @@ library(tidyverse) ## Data Manipulation
 library(rethinking) ## Parallel Simulations
 library(ggplot2)
 library(ggrepel)
-
+library(directlabels)
 
 ## Load Scripts
 source("scripts/clpm2_c.R")
@@ -176,3 +176,233 @@ results10 %>%
 ggsave("images/grantFigure10.png", width=5, height=5, units="in")
 
 
+################################################################################
+## Hilda Data
+################################################################################
+
+nYears <- 10
+
+################################################################################
+## Plot AR-1 Data
+################################################################################
+## Function to calculate decline in correlations as lag increases
+arTrend <- function(x, n) {
+    corVec <- vector(length=n)
+    for (i in 1:n) {
+        corVec[i] <- x^i
+    }
+    return(corVec)
+}
+
+data <- data.frame(
+    Years = rep(1:nYears, 3),
+    Correlation = c(
+        arTrend(.75, nYears),
+        arTrend(.50, nYears),
+        arTrend(.25, nYears)
+    ),
+    Stability = rep(c(.75, .50, .25), each = nYears)
+)
+
+arPlot <- ggplot(aes(x=Years, y=Correlation, group=Stability),
+                 data=data) +
+    geom_line(lwd=.2) +
+        theme_grey(base_size = 8) +
+        ylim(-.1, 1) +
+        scale_x_continuous(labels=c(1:10), breaks=c(1:10)) +
+    theme(
+        panel.background = element_rect(fill='transparent', color=NA),
+        plot.background = element_rect(fill='transparent', color=NA),
+		axis.line = element_line(color="black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+    ) +
+    ggtitle('Panel A')
+
+################################################################################
+## Plot AR-1 Data with Cross-Lagged Paths
+################################################################################
+source("~/Projects/starts/scripts/usefulFunctions.R")
+source("~/Projects/starts/scripts/gen_starts.R")
+
+cl <- .20 ## 90th Percentile, from Orth
+dataCL.1 <- data.frame(
+    Years = rep(1:nYears, 3),
+    Correlation = c(
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = nYears+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .73,
+            stab_y = .73,
+            yx = cl,
+            xy = cl,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+        )[, 1:11])),
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = nYears+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .5,
+            stab_y = .5,
+            yx = cl,
+            xy = cl,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+        )[, 1:11])),
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = nYears+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .25,
+            stab_y = .25,
+            yx = cl,
+            xy = cl,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+        )[, 1:11]))
+    ),
+    Stability = rep(c(.75, .50, .25), each = nYears)
+)
+
+clPlot <- ggplot(aes(x=Years, y=Correlation, group=Stability),
+                 data=dataCL.1) +
+    geom_line(lwd=.2) +
+        theme_grey(base_size = 8) +
+        ylim(-.1, 1) +
+        scale_x_continuous(labels=c(1:10), breaks=c(1:10)) +
+    theme(
+        panel.background = element_rect(fill='transparent', color=NA),
+        plot.background = element_rect(fill='transparent', color=NA),
+		axis.line = element_line(color="black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        ## axis.text.y=element_blank(),
+        ## axis.title.y=element_blank()
+    ) 
+
+stab73 <- dataCL.1 %>%
+    filter(Stability == .75) %>%
+    select(
+        Years,
+        Correlation
+    ) %>%
+    mutate(Source = 1,
+           Variable = "") 
+
+
+################################################################################
+## Plot Actual Data from HILDA
+################################################################################
+
+hilda <- read_csv("data/hildaCors.csv")
+names(hilda) <- c("Years", "Correlation", "Variable")
+hilda$Source <- 0
+
+hilda2 <- rbind(hilda, stab73)
+
+hildaPlot <- ggplot(aes(x=Years, y=Correlation, fill=Variable),
+                 data=hilda[hilda$Years <= 10,]) +
+    geom_line(lwd=.2) +
+	theme_grey(base_size=20) +
+    theme(
+        panel.background = element_rect(fill='transparent', color=NA),
+        plot.background = element_rect(fill='transparent', color=NA),
+		axis.line = element_line(color="black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill='transparent'),
+        legend.box.background = element_rect(fill='transparent'),
+        ## axis.text.y=element_blank(),
+        ## axis.title.y=element_blank(),
+    ) +
+    ylim(-.1, 1) +
+#    xlim(1,12) +
+    scale_x_continuous(labels=c(1:10), breaks=c(1:10), limits=c(1,11)) +
+    scale_color_manual(values = rep("black", 10))
+
+my.dl <- list(fill="white", "draw.rects")
+direct.label(
+    hildaPlot,
+    list(
+        cex = .6,
+        "far.from.others.borders",
+        "calc.boxes",
+        "enlarge.box",
+        "my.dl"
+    )
+)
+
+ggsave("images/hildaGrant.png", scale=8)
+
+
+## With Generated Data
+hildaPlot2 <- ggplot(aes(
+    x=Years,
+    y=Correlation,
+    fill=Variable,
+    linetype = factor(Source)
+),
+data=hilda2[hilda2$Years <= 10,]) +
+    geom_line(lwd=.2) +
+    theme_grey(base_size=20) +
+    theme(
+        panel.background = element_rect(fill='transparent', color=NA),
+        plot.background = element_rect(fill='transparent', color=NA),
+        axis.line = element_line(color="black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.background = element_rect(fill='transparent'),
+        legend.box.background = element_rect(fill='transparent'),
+        ## axis.text.y=element_blank(),
+        ## axis.title.y=element_blank(),
+    ) +
+    ylim(-.1, 1) +
+        #    xlim(1,12) +
+        scale_x_continuous(labels = c(1:10), breaks = c(1:10), limits = c(1, 11)) +
+        scale_color_manual(values = rep("black", 10))
+hildaPlot2    
+
+my.dl <- list(fill="white", "draw.rects")
+direct.label(
+    hildaPlot2,
+    list(
+        cex = .6,
+        "far.from.others.borders",
+        "calc.boxes",
+        "enlarge.box",
+        "my.dl"
+    )
+)
+
+
+
+################################################################################
+## Combine Plots
+################################################################################
+
+grid.arrange(arPlot,
+             clPlot,
+##             direct.label(hildaPlot, list(cex=.3, "angled.boxes")),
+             direct.label(hildaPlot, list(cex=.3,
+                             "far.from.others.borders",
+                             "calc.boxes",
+                             "enlarge.box",
+                             "my.dl")),
+             nrow=1)
