@@ -406,3 +406,149 @@ grid.arrange(arPlot,
                              "enlarge.box",
                              "my.dl")),
              nrow=1)
+
+
+################################################################################
+## Revision Figures
+################################################################################
+
+hildaR <- hilda %>%
+    filter(Variable == "LifeSat" |
+           Variable == "Activity" |
+           Variable == "Pain" |
+           Variable == "Health" |
+           Variable == "Weight")
+
+
+## Generate corresponding CLPM data
+cl <- .20 ## 90th Percentile, from Orth
+dataCL.1 <- data.frame(
+    Years = rep(1:nYears, 5),
+    Correlation = c(
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = nYears+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .60,
+            stab_y = .60,
+            yx = cl,
+            xy = cl,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+        )[, 1:11])),
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = nYears+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .57,
+            stab_y = .57,
+            yx = cl,
+            xy = cl,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+        )[, 1:11])),
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = nYears+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .64,
+            stab_y = .64,
+            yx = cl,
+            xy = cl,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+        )[, 1:11])),
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = nYears+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .95,
+            stab_y = .95,
+            yx = .03, ## Had to adjust
+            xy = .03,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+            )[, 1:11])),
+        summarizeR(cor(gen_starts(
+            n = 10000,
+            nwaves = nYears+1,
+            ri_x = 0,
+            ri_y = 0,
+            cor_i = 0,
+            x = 1,
+            y = 1,
+            stab_x = .72,
+            stab_y = .72,
+            yx = cl,
+            xy = cl,
+            cor_xy = .5,
+            xr = 0,
+            yr = 0
+            )[, 1:11]))
+    ),
+    Stability = rep(c(.60, .57, .64, .95, .72), each = nYears)
+)
+
+stabCl <- dataCL.1 %>%
+    select(
+        Years,
+        Correlation
+    ) %>%
+    mutate(Source = 1)
+stabCl$Variable <- rep(c("LifeSat", "Activity", "Pain", "Health", "Weight"), each=nYears)
+
+hildaR <- rbind(hildaR, stabCl)
+
+
+hildaPlot <- ggplot(aes(x=Years, y=Correlation, fill=Variable, linetype=factor(Source)),
+                 data=hildaRf[hildaRf$Years <= 15,]) +
+    geom_line(lwd=.2) +
+	theme_grey(base_size=20) +
+    theme(
+        panel.background = element_rect(fill='transparent', color=NA),
+        plot.background = element_rect(fill='transparent', color=NA),
+		axis.line = element_line(color="black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        legend.position = "none"
+        ## axis.text.y=element_blank(),
+        ## axis.title.y=element_blank(),
+    ) +
+    ylim(-.1, 1) +
+#    xlim(1,12) +
+    scale_x_continuous(labels=c(1:10), breaks=c(1:10), limits=c(1,11)) +
+    scale_color_manual(values = rep("black", 10))
+
+my.dl <- list(fill="white", "draw.rects")
+direct.label(
+    hildaPlot,
+    list(
+        cex = .6,
+        "far.from.others.borders",
+        "calc.boxes",
+        "enlarge.box",
+        "my.dl"
+    )
+)
